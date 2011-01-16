@@ -8,7 +8,7 @@ typedef unsigned int u32;
 
 #include "bmpsave.h"
 
-void write16(u16* address, u16 value) {
+void write16(u16* address, u16 value) { // LE
     u8* first=(u8*)address;
     u8* second=first+1;
 
@@ -16,7 +16,7 @@ void write16(u16* address, u16 value) {
     *second=value>>8;
 }
 
-void write32(u32* address, u32 value) {
+void write32(u32* address, u32 value) { // LE
     u8* first=(u8*)address;
     u8* second=first+1;
     u8* third=first+2;
@@ -69,9 +69,9 @@ void bmpsave(const char* filename, char *data, unsigned w, unsigned h) {
     char *p = &temp[sizeof(INFOHEADER)+sizeof(HEADER)];
     for(y = 0; y<h; y++) {
         for(x = 0; x<w; x++) {
-            *p++ = data[(w*(h - y - 1) + x)*3 + 2];
-            *p++ = data[(w*(h - y - 1) + x)*3 + 1];
-            *p++ = data[(w*(h - y - 1) + x)*3 + 0];
+            *p++ = data[(w*(h - y - 1) + x)*3 + 2]; // B
+            *p++ = data[(w*(h - y - 1) + x)*3 + 1]; // G
+            *p++ = data[(w*(h - y - 1) + x)*3 + 0]; // R
         }
         p += adjust;    // 4 bytes aligned
     }

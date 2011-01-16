@@ -14,15 +14,14 @@
 #include "FT2dft.h"
 
 int verbose = 0;
+char *dofname = NULL;     // dump output filename
 
 int main(int argc, char *argv[]) {
     char *      ifname = NULL;      // input filename
-    char *      dofname = NULL;     // dump output filename
     char *      ofname = NULL;      // output filename
-    FILE *      ofd = NULL;         // output file descriptor
     unsigned    ofntsize = 10;      // output font size
-    char *      fmtstr = "A5I3";    // format string
-    unsigned    fmtdesc = DFT_TEX_FMT_A5I3;
+    char *      ofmtstr = "A5I3";    // format string
+    unsigned    ofmtdesc = DFT_TEX_FMT_A5I3;
 
     sSelection selects[MAX_SELECTS];
     int num_selects = 0;
@@ -46,7 +45,10 @@ int main(int argc, char *argv[]) {
         {"font-size",           required_argument, 0, 's'}, // integer (in pixels)
         {"select",              required_argument, 0, 'l'}, // couple of hex integers 0x#:0x# (one of the two maybe omitted)
         {0, 0, 0, 0}
-    };  // TODO : color selection of BG and FG of each face (remove palette-first-trans and replace it with FG=trans)
+    };
+    // TODO : color selection of BG and FG of each face (remove palette-first-trans and replace it with FG=trans)
+    // TODO : monochrome ?
+    // TODO : usage
     char options_desc[] =
         "vi:o:d:f:ts:l:";
     int option_index;
@@ -80,19 +82,19 @@ int main(int argc, char *argv[]) {
             dofname = optarg;
             break;
         case 'f':   // texture format
-            fmtstr = optarg;
+            ofmtstr = optarg;
 
-            fmtdesc &= ~DFT_TEX_FMT_MASK;
+            ofmtdesc &= ~DFT_TEX_FMTMASK;
 
-            unsigned fmt = dft_get_tex_fmt(fmtstr);
+            unsigned fmt = dft_get_tex_fmt(ofmtstr);
             if(!fmt)
-                mexit(1, "ERR: Invalid texture format \"%s\"", fmtstr);
+                mexit(1, "ERR: Invalid texture format \"%s\"", ofmtstr);
 
-            fmtdesc |= fmt;
+            ofmtdesc |= fmt;
 
             break;
         case 't':
-            fmtdesc |= DFT_TEX_PAL1TRANS;
+            ofmtdesc |= DFT_TEX_PAL1TRANS;
             break;
         case 's':   // font size
             ofntsize = atoi(optarg);
@@ -105,8 +107,6 @@ int main(int argc, char *argv[]) {
 
             break;
         case '?':   // parse error
-            /* getopt_long already printed an error message. */
-            break;
         default:
             abort();
         }
@@ -119,13 +119,11 @@ int main(int argc, char *argv[]) {
     // check ouput filename
     if(!ofname)
         mexit(1, "ERR: No output filename");
-    if(!(ofd = fopen(ofname, "wb")))
-        mexit(1, "ERR: Can't create file \"%s\"", ofname);
 
     // print input arguments and default values
     printf("Input FreeType font     : %s\n", ifname);
-    printf("Output dsf font         : %s\n", ofname);
-    printf("Output texture format   : %s (%04x)\n", fmtstr, fmtdesc);
+    printf("Output dft font         : %s\n", ofname);
+    printf("Output texture format   : %s (%04x)\n", ofmtstr, ofmtdesc);
     printf("Output font size        : %d\n", ofntsize);
     if(num_selects) {
         printf("Convert only this subset of the font :\n");
@@ -139,67 +137,49 @@ int main(int argc, char *argv[]) {
     FTread(ifname, ofntsize, selects, num_selects, &glyphs, &ranges, &bmpsurface);
 
     bmpavesize = sqrt((float)bmpsurface);
-    bmpfixedwidth = (int)pow(2, ceil(log(bmpavesize)/log(2)));
+    bmpfixedwidth = (int)pow(2, ceil(log(bmpavesize)/log(2)));  // the next 2^k
 
+if(verbose) {
     printf("%d range(s)\n", ranges.count);
     printf("%d glyphs(s)\n", glyphs.count);
     printf("%d surface (px²)\n", bmpsurface);
-    printf("%.1f average size (px)\n", bmpavesize);
+    printf("%.1fx%.1f average size (px)\n", bmpavesize, bmpavesize);
     printf("%d fixed width (px)\n", bmpfixedwidth);
+}
 
     // dump size data
     dump_glyphs_size(dofname, &glyphs);
 
-// we now have the data in ranges and glyphs, we can create the dsf file
+// we now have the data in ranges and glyphs, we can create the dft file
 
-    unsigned w = bmpfixedwidth, h, i, j, cu, cv, cw, ch;
+    unsigned w = bmpfixedwidth, h;
 
     // optimise the position of the caracters on the texture (with a fixed width)
     genplacement(&glyphs, w, &h);
 
+if(verbose)
+printf("texsize=%dx%d\n", w, h);
+if(verbose)
+printf("efficiency = %.1f%%\n", 100.0*(float)bmpsurface/(float)(w*h));
+
     // dump position data
     dump_glyphs_positions(dofname, &glyphs);
 
-printf("texsize=%dx%d\n", w, h);
-    char *tex = (char *)calloc(1, w*h*3);
+    // write to dft file
+    sDFT_RANGES *dftranges;
+    sDFT_MAP *dftmap;
+    sDFT_TEXTURE *dfttexture;
+    sDFT_PALETTE *dftpalette;
 
-if(verbose>2) { // fill with red the background
-for(i=0; i<w*h*3; i+=3)
-    tex[i]=255;
-}
+    dft_new_ranges(&ranges, &dftranges);
+    dft_new_map(&glyphs, &dftmap);
+    dft_new_texture(&glyphs, w, h, ofmtdesc, &dfttexture, &dftpalette);
 
-unsigned maxw=0, maxh=0;
-    if(tex) {
-        sLEl *curr;
-        for(curr = glyphs.head; curr; curr = curr->next) {
-            cu = SGLYPH(curr)->props.u;
-            cv = SGLYPH(curr)->props.v;
-            cw = SGLYPH(curr)->props.w;
-            ch = SGLYPH(curr)->props.h;
+    dft_write(ofname, dftranges, dftmap, dfttexture, dftpalette);
 
-if(cw > maxw) maxw = cw;
-if(ch > maxh) maxh = ch;
+    dft_cleanup(dftranges, dftmap, dfttexture, dftpalette);
 
-            if(cw*ch) {
-                for(j=0; j<ch; j++) {
-                    for(i=0; i<cw; i++) {   // for the moment : grey scale
-                        tex[((cu + i) + (cv + j)*w)*3 + 0] = SGLYPH(curr)->bitmap[i + j*cw];    // R
-                        tex[((cu + i) + (cv + j)*w)*3 + 1] = SGLYPH(curr)->bitmap[i + j*cw];    // G
-                        tex[((cu + i) + (cv + j)*w)*3 + 2] = SGLYPH(curr)->bitmap[i + j*cw];    // B
-                    }
-                }
-            }
-        }
-
-        // dump texture
-        dump_texture(dofname, tex, w, h);
-
-        free(tex);
-    }
-
-printf("max size %dx%d\n", maxw, maxh);
-printf("efficiency = %.1f%%\n", 100.0*(float)bmpsurface/(float)(w*h));
-
+    // free data
     void delglyph(sDFT_GLYPH *glyph) {
         if(glyph->bitmap) free(glyph->bitmap);
         free(glyph);
@@ -207,6 +187,7 @@ printf("efficiency = %.1f%%\n", 100.0*(float)bmpsurface/(float)(w*h));
     L_dropall(&glyphs, (datahandler)delglyph);
     L_dropall(&ranges, free);
 
-    fclose(ofd);
+    if(verbose)
+        malloc_stats();
 }
 

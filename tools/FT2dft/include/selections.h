@@ -2,7 +2,7 @@
 #define _SELECTIONS_H
 
 typedef struct Selection sSelection;
-struct Selection {
+struct Selection {  // TODO : use sList instead of sSelection
     unsigned start;
     unsigned end;   // if !end go to the end
 };
