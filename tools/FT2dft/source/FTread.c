@@ -15,15 +15,15 @@ void print_glyph(FT_GlyphSlot glyph, FT_Bitmap *bmp) {
     unsigned char *buffer = bmp->buffer;
 
     // print character metrics
-    printf(" (\t%dx%d@(%d,%d)\tx+%.1f,y+%.1f\t)\n",
+    printf("(\t%dx%d@(%d,%d)\tx+%.1f,y+%.1f\t)\n",
         w, h,                                                       // bitmap size
         glyph->bitmap_left, glyph->bitmap_top,                      // coordinates of the bitmap from the pen
         (float)glyph->advance.x/64.0, (float)glyph->advance.y/64.0  // x and y advance of the pen
     );
 
-    // print character
     int i, j;
     for(j=0; j<h; j++) {
+        // print character
         for(i=0; i<w; i++) {
             unsigned char c = buffer[i + j * w];
             if(c>170) printf("#");
@@ -31,12 +31,13 @@ void print_glyph(FT_GlyphSlot glyph, FT_Bitmap *bmp) {
             else if(c) printf("+");
             else printf(" ");
         }
+
+        // print bitmap data
+        printf("  |");
+        for(i=0; i<w; i++) printf("%03d|", buffer[i + j * w]);
+
         printf("\n");
     }
-
-    // print bitmap data
-    for(i=0; i<w*h; i++) printf("%03d|", buffer[i]);
-    printf("\n");
 }
 
 void FTread(char *ifname, unsigned ofntsize, sSelection *selects, unsigned num_selects, sList *glyphs, sList *ranges, unsigned *_bmpsurface) {
@@ -125,10 +126,7 @@ if(face->num_fixed_sizes) {
         }
 
 if(verbose>1) {
-printf("  %08X@%08X",
-    (unsigned int)charcode,   // unicode of character
-    glyphindex  // glyphindex in face
-);
+printf("  %08X@%08X ", (unsigned int)charcode, glyphindex);
 print_glyph(face->glyph, &bmp);
 }
 

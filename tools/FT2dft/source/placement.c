@@ -122,12 +122,14 @@ printf("!");
             else {  // no solution for that limit => remove that limit and merge it with the prev or next limit
 if(verbose>1)
 printf("remove lim \'"LIMFMT"\' (%d -> ", LIMARGS(curlim), LIMITH(curlim));
-                if(curlim->prev)
-                    SLIMIT(curlim)->height = SLIMIT(curlim->prev)->height;
+
+                if(curlim->prev && curlim->next)
+                    LIMITH(curlim) = MIN(LIMITH(curlim->prev), LIMITH(curlim->next));
+                else if(curlim->prev)
+                    LIMITH(curlim) = LIMITH(curlim->prev);
                 else if(curlim->next)
-                    SLIMIT(curlim)->height = SLIMIT(curlim->next)->height;
-                else
-                    printf("omfgwtf?\n");
+                    LIMITH(curlim) = LIMITH(curlim->next);
+
 if(verbose>1)
 printf("%d)\n", LIMITH(curlim));
                 lim_group(&limit);

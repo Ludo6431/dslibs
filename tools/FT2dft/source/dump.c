@@ -10,7 +10,7 @@
 void dump_glyphs_size(char *dofname, sList *glyphs) {
     if(!dofname) return;
 
-    char *fn = add_suffix(dofname, "_glyphs_sizes.txt");
+    char *fn = add_suffix(dofname, ".glyphs_sizes.txt");
 
     FILE *dofd = fopen(fn, "wb");
 
@@ -34,7 +34,7 @@ void dump_glyphs_size(char *dofname, sList *glyphs) {
 void dump_glyphs_positions(char *dofname, sList *glyphs) {
     if(!dofname) return;
 
-    char *fn = add_suffix(dofname, "_glyphs_positions.txt");
+    char *fn = add_suffix(dofname, ".glyphs_positions.txt");
 
     FILE *dofd = fopen(fn, "wb");
 
@@ -58,7 +58,7 @@ void dump_glyphs_positions(char *dofname, sList *glyphs) {
 void dump_texture(char *dofname, char *tex, unsigned w, unsigned h) {
     if(!dofname) return;
 
-    char *fn = add_suffix(dofname, "_tex.bmp");
+    char *fn = add_suffix(dofname, ".tex.bmp");
     fprintf(stderr, "INFO: dumping texture to file \"%s\" (%ux%u)\n", fn, w, h);
     bmpsave(fn, tex, w, h);
 }

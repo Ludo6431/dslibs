@@ -29,7 +29,12 @@ void write32(u32* address, u32 value) { // LE
 }
 
 void bmpsave(const char* filename, char *data, unsigned w, unsigned h) {
-    assert(filename); assert(data); assert(w*h);
+    assert(filename); assert(data);
+
+    if(!(w*h)) {
+        unlink(filename);
+        return;
+    }
 
     FILE* file = fopen(filename, "wb");
     if(!file) return;
