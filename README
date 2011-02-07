@@ -1,0 +1,32 @@
+This is a set of tools and libraries for homebrew coding on DS.
+ -- by Ludo6431
+
+Libraries:
+    * libdstk -- DS Tool Kit
+        - objects for C
+        - utf8
+        - more to come ...
+
+    * libdsdual -- 3D Dual Screen [WIP]
+        - primitives for graphic / sprites / ... rendering in 3D
+        - more to come ...
+
+    * libdft -- DS Font [WIP]
+        - renders text in 3D
+
+    * libdswm -- DS Window Manager [TODO]
+        - uses libdstk, libdsdual, libdft to give us a powerfull 3D windows environment
+        - more to come
+
+Tools:
+    * FT2dft -- FreeType To DS Font
+        - converts any freetype font to the dft format
+        - you can choose the size, the subset, ... of the font
+
+Examples:
+    * dfttest -- DS Font Test
+        - renders text in 3D using libdstk, libdsdual and libdft
+
+    * dstktest -- DS Tool Kit Test [WIP]
+        - tests the object system
+
