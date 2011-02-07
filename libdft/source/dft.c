@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <assert.h>
+#include <math.h>
 
 #ifdef ARM9
 #include <nds.h>
@@ -9,19 +10,25 @@
 
 #include "dft.h"
 
-#define _FMT(f) {#f, DFT_TEX_FMT_##f}
+#ifdef ARM9
+#   define _FMT(f, dsf) {#f, DFT_TEX_FMT_##f, GL_##dsf}
+#else
+#   define _FMT(f, dsf) {#f, DFT_TEX_FMT_##f, 0}
+#endif
 sTFmt DFT_TEX_FMTS[] = {
-    _FMT(A3I5),
-    _FMT(A0I2),
-    _FMT(A0I4),
-    _FMT(A0I8),
-    _FMT(A5I3),
-    _FMT(A1C15),
+    _FMT(A0I2,  RGB4),
+    _FMT(A5I3,  RGB8_A5),
+    _FMT(A0I4,  RGB16),
+    _FMT(A3I5,  RGB32_A3),
+    _FMT(A0I8,  RGB256),
+    _FMT(A1C15, RGBA),
     {NULL}
 };
 #undef _FMT
 
 unsigned dft_get_tex_fmt(char *str) {
+    assert(str);
+
     sTFmt *p = DFT_TEX_FMTS;
     while(p->name) {
         if(!strcasecmp(p->name, str))
@@ -36,29 +43,35 @@ u16 dft_crc(char *data, unsigned size) {
 
     #define CRCSEED 0xFFFF
 
-#ifdef ARM9
     assert(!((unsigned)data&0x1));    // 2 bytes aligned
     assert(!(size&0x1));    // 2 bytes aligned
 
+#ifdef ARM9
     return swiCRC16(CRCSEED, data, size);
 #else
+    // gbatek is wrong, check : http://desmume.svn.sourceforge.net/viewvc/desmume/trunk/desmume/src/bios.cpp?revision=3877&content-type=text%2Fplain (line 1018)
+    const u16 val[] = { 0x0000,0xCC01,0xD801,0x1400,0xF001,0x3C00,0x2800,0xE401,0xA001,0x6C00,0x7800,0xB401,0x5000,0x9C01,0x8801,0x4400};
+    u16 crc = CRCSEED;
+    u32 i, j;
 
-    u16 val[8] = { 0xC0C1, 0xC181, 0xC301, 0xC601, 0xCC01, 0xD801, 0xF001, 0xA001 };
+    for(i=0; i<size>>1; i++) {
+        u16 currVal = ((u16 *)data)[i];
 
-    u16 crc = CRCSEED, carry;
-    unsigned i, j;
-    for(i=0; i<size; i++) {
-        crc = crc^data[i];
-        for(j=0; j<8; j++) {
-            carry = crc&0x1;
-            crc = crc>>1;
-            if(carry)
-                crc = crc^(val[j]<<(7-j));
+        for(j=0; j<4; j++) {
+            u16 tabVal = val[crc&0xF];
+            crc >>= 4;
+            crc ^= tabVal;
+
+            u16 tempVal = currVal >> (4*j);
+            tabVal = val[tempVal&0xF];
+            crc ^= tabVal;
         }
     }
 
     return crc;
 #endif
+
+    #undef CRCSEED
 }
 
 int dft_check(void *data, unsigned datasize) {
@@ -82,7 +95,134 @@ int dft_check(void *data, unsigned datasize) {
     return 0;
 }
 
-#ifndef ARM9
+int dft_init(sDFT *font, char *fname) {
+    assert(font);
+    assert(fname);
+
+    bzero(font, sizeof(sDFT));
+
+    FILE *fd = NULL;
+    char *data = NULL;
+    unsigned datasize;
+
+    fd = fopen(fname, "rb+");
+    if(!fd)
+        goto fail;
+
+    fseek(fd, 0, SEEK_END);
+    datasize = ftell(fd);
+    rewind(fd);
+
+    data = malloc(datasize);
+    if(!data)
+        goto fail;
+    if(fread(data, 1, datasize, fd) != datasize)
+        goto fail;
+
+    if(dft_check(data, datasize))
+        goto fail;
+
+    font->data = data;
+    font->datasize = datasize;
+
+    fclose(fd);
+
+    return 0;
+
+fail:
+    if(data) free(data);
+    if(fd) fclose(fd);
+
+    return 1;
+}
+
+sDFT_GPROPS *dft_get_glyph(sDFT *font, u32 c) {
+    assert(font);
+    assert(font->data);
+
+    sDFT_RANGE *curr = DFT_SECTION(font->data, DFT_RANGES)->ranges;
+    unsigned num = DFT_SECTION(font->data, DFT_RANGES)->num;
+    while(num--) {
+        if(curr->first_car <= c && c <= curr->last_car)
+            return &DFT_SECTION(font->data, DFT_MAP)->glyphs[curr->map_offset + c - curr->first_car];
+
+        curr++;
+    }
+
+    return NULL;
+}
+
+#ifdef ARM9
+unsigned dft_get_tex_dsfmt(char *str, unsigned fmt) {   // if str use str else use fmt
+    sTFmt *p = DFT_TEX_FMTS;
+    if(str)
+        while(p->name) {
+            if(!strcasecmp(p->name, str))
+                return p->dsfmt;
+            p++;
+        }
+    else
+        while(p->name) {
+            if(p->fmt == (fmt&DFT_TEX_FMTMASK))
+                return p->dsfmt;
+            p++;
+        }
+    return 0;
+}
+
+unsigned dft_get_tex_dssize(unsigned sz) {
+    if(sz<=8)       return TEXTURE_SIZE_8;
+    if(sz<=16)      return TEXTURE_SIZE_16;
+    if(sz<=32)      return TEXTURE_SIZE_32;
+    if(sz<=64)      return TEXTURE_SIZE_64;
+    if(sz<=128)     return TEXTURE_SIZE_128;
+    if(sz<=256)     return TEXTURE_SIZE_256;
+    if(sz<=512)     return TEXTURE_SIZE_512;
+    if(sz<=1024)    return TEXTURE_SIZE_1024;
+
+    return 0;
+}
+
+unsigned dft_get_tex_dsparam(sDFT_TEXTURE *tex) {
+    assert(tex);
+
+    unsigned param = 0 | TEXGEN_OFF;
+
+    if((tex->fmt & DFT_TEX_HASPALETTE) && (tex->fmt & DFT_TEX_PAL1TRANS))
+        param |= GL_TEXTURE_COLOR0_TRANSPARENT;
+
+    return param;
+}
+
+int dft_load(sDFT *font) {
+    assert(font);
+
+    if(!font->data) return 0;
+
+    // load texture
+    sDFT_TEXTURE *ftex = DFT_SECTION(font->data, DFT_TEXTURE);
+    font->texFmt = dft_get_tex_dsfmt(NULL, ftex->fmt); // get texture ds format with dft format
+    glGenTextures(1, &font->texId);
+    glBindTexture(0, font->texId);
+    glTexImage2D(
+        0, 0,   /* useless / compatibility */
+        font->texFmt /* type */,
+        dft_get_tex_dssize(ftex->w) /* X size */,
+        dft_get_tex_dssize(ftex->h) /* Y size */,
+        0,  /* useless / compatibility */
+        dft_get_tex_dsparam(ftex) /* texture params */,
+        ftex->data
+    );
+
+    // load texture palette
+    sDFT_PALETTE *fpal = DFT_SECTION(font->data, DFT_PALETTE);
+    font->palAddr = gluTexLoadPal(fpal->data, fpal->num&1?fpal->num+1:fpal->num /* XXX : libnds fix pending */, font->texFmt);
+
+    return font->texId;
+}
+
+#else /* ifdef ARM9 */
+
 #include <list.h>
 #include "FT2dft.h" // TODO : that's a hacky way to get verbose, dump_texture, mexit and dofname symbols
 #include "dump.h"
@@ -154,9 +294,13 @@ for(i=0; i<w*h*3; i+=3)
     dump_texture(dofname, tex, w, h);
 
 // TODO : create fading palette when BG color is not transparent
+    u8 carmask = 0;
     switch(format&DFT_TEX_FMTMASK) {
     case DFT_TEX_FMT_A3I5:
+        carmask = 0xE0;
     case DFT_TEX_FMT_A5I3:
+        if(!carmask) carmask = 0xF8;
+
         (*dfttex) = (sDFT_TEXTURE *)malloc(sizeof(sDFT_TEXTURE) + w*h); // 1 byte per pixel
         if(!dfttex) mexit(1, "ERR: not enough memory");
         (*dftpal) = (sDFT_PALETTE *)calloc(1, sizeof(sDFT_PALETTE) + 2*1);  // 1 color
@@ -167,12 +311,9 @@ for(i=0; i<w*h*3; i+=3)
         (*dftpal)->num = 1;
         (*dftpal)->data[0] = 0x7FFF; // white
 
-        if(DFT_TEX_ISFMT(format, A5I3))
-            for(i=0; i<w*h*3; i+=3)
-                ((u8 *)(*dfttex)->data)[i/3] = ((255-tex[i])&0xF8);  // A5I3 (A = 5 bits white intensity; I = 0 (first pal color))
-        else
-            for(i=0; i<w*h*3; i+=3)
-                ((u8 *)(*dfttex)->data)[i/3] = ((255-tex[i])&0xE0);  // A5I3 (A = 3 bits white intensity; I = 0 (first pal color))
+        for(i=0; i<w*h; i++)
+            ((u8 *)(*dfttex)->data)[i] = tex[3*i]&carmask;//((255-tex[3*i])&carmask);
+
         break;
     default:
         mexit(1, "ERR: texture format not yet implemented");

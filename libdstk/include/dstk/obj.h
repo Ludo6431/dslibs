@@ -13,6 +13,7 @@ struct Obj {
 
 struct cObj {
     size_t size;
+//    void *parent; TODO : this will simplify "static int AType_isclass(const void *class) {"-like functions
     void *  (*ctor)     (void *self, va_list *app);
     void *  (*dtor)     (void *self);
     void *  (*clone)    (const void *self);
