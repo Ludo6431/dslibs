@@ -141,6 +141,9 @@ static void *OList_drop(void *_self, void *element) {
         if(curr == self->last)
             self->last = prev;
 
+        if(prev)
+            prev->next = curr->next;
+
         free(curr);
 
         self->count--;
@@ -170,7 +173,7 @@ const void *OList = &_OList;
 // ---- new functions ----
 
 void *obj_add(void *_self, void *_element) {
-    if(_self && obj_isclass(_element, OList)) {
+    if(_self && obj_isclass(_self, OList)) {
         const struct cOList *class = CLASS(_self);
         assert(class && class->add);
 
@@ -181,7 +184,7 @@ void *obj_add(void *_self, void *_element) {
 }
 
 void *obj_find(void *_self, void *_element) {
-    if(_self && obj_isclass(_element, OList)) {
+    if(_self && obj_isclass(_self, OList)) {
         const struct cOList *class = CLASS(_self);
         assert(class && class->find);
 
@@ -192,7 +195,7 @@ void *obj_find(void *_self, void *_element) {
 }
 
 void *obj_drop(void *_self, void *_element) {
-    if(_self && obj_isclass(_element, OList)) {
+    if(_self && obj_isclass(_self, OList)) {
         const struct cOList *class = CLASS(_self);
         assert(class && class->drop);
 

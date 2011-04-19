@@ -54,6 +54,7 @@ static const struct cObject _Object = {
         Object_drop
     }
     // setprop
+    // getprop
     // delprop
 };
 

@@ -75,9 +75,10 @@ void obj_delete(void *_self) {
         const struct cObj *class = CLASS(_self);
         assert(class && class->dtor);
 
-        _self = class->dtor(_self);
-
-        if(!REFCNT(_self)) free(_self);
+        if(!REFCNT(_self)) {
+            _self = class->dtor(_self);
+             free(_self);
+        }
     }
 }
 
