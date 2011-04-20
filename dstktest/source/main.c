@@ -22,7 +22,7 @@ void test1() {  // general tests (creation / children / deletion / memory leaks)
 
 #ifdef OBJECT1
     malloc_stats();
-    struct Object *obj = obj_new(Object, obj_new(String, "Tst"), obj_new(AType, 6, "12345"), obj_clone(txt), NULL);
+    struct Object *obj = obj_new(Object, obj_new(String, "Tst"), obj_new(Data, 6, "12345"), obj_clone(txt), NULL);
     iprintf("%d children\n", OLIST(obj)->count);
     iprintf("%s from first (RC=%d)\n", obj_repr(OLIST(obj)->first->data), REFCNT(OLIST(obj)->first->data));
     iprintf("%s from last (RC=%d)\n", obj_repr(OLIST(obj)->last->data), REFCNT(OLIST(obj)->last->data));
@@ -59,13 +59,13 @@ void test2() {  // multiple parents test
     struct Objet *obj2 = obj_new(Object, txt, NULL);
 
     iprintf("RC=%d\n", REFCNT(txt));
-    iprintf("%dB\n", ATYPE(txt)->datasize);
+    iprintf("%dB\n", DATA(txt)->datasize);
     iprintf("%s from first (RC=%d)\n", obj_repr(OLIST(obj1)->first->data), REFCNT(OLIST(obj1)->first->data));
 
     obj_delete(obj1);
 
     iprintf("RC=%d\n", REFCNT(txt));
-    iprintf("%dB\n", ATYPE(txt)->datasize);
+    iprintf("%dB\n", DATA(txt)->datasize);
     iprintf("%s from first (RC=%d)\n", obj_repr(OLIST(obj2)->first->data), REFCNT(OLIST(obj2)->first->data));
 
     obj_delete(obj2);

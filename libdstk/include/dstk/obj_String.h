@@ -1,15 +1,15 @@
 #ifndef _OBJ_STRING_H
 #define _OBJ_STRING_H
 
-#include "dstk/obj_AType.h"
+#include "dstk/obj_Data.h"
 
 struct String {
-    struct AType _;
+    struct Data _;
 };
 #define STRING(obj) ((struct String *)(obj))
 
 struct cString {
-    struct cAType _;
+    struct cData _;
 };
 #define cSTRING(cl) ((struct cString *)(cl))
 

@@ -6,7 +6,7 @@
 
 // object system
 #include <dstk/obj.h>
-#   include <dstk/obj_AType.h>
+#   include <dstk/obj_Data.h>
 #       include <dstk/obj_String.h>
 #   include <dstk/obj_OList.h>
 #       include <dstk/obj_Object.h>

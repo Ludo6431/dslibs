@@ -3,12 +3,12 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "dstk/obj_AType.h"
+#include "dstk/obj_Data.h"
 
 #define SZMAX (sizeof(unsigned))
 
-static void *AType_ctor(void *_self, va_list *app) {
-    struct AType *self = cOBJ(Obj)->ctor(_self, app);
+static void *Data_ctor(void *_self, va_list *app) {
+    struct Data *self = cOBJ(Obj)->ctor(_self, app);
 
     self->datasize = va_arg(*app, unsigned);
     if(self->datasize <= SZMAX)
@@ -22,8 +22,8 @@ static void *AType_ctor(void *_self, va_list *app) {
     return self;
 }
 
-static void *AType_dtor(void *_self) {
-    struct AType *self = _self;
+static void *Data_dtor(void *_self) {
+    struct Data *self = _self;
 
     if(self->datasize > SZMAX && self->data)
         free((void *)self->data);
@@ -33,9 +33,9 @@ static void *AType_dtor(void *_self) {
     return cOBJ(Obj)->dtor(_self);
 }
 
-static void *AType_clone(const void *_self) {
-    const struct AType *self = _self;
-    struct AType *new = cOBJ(Obj)->clone(_self);
+static void *Data_clone(const void *_self) {
+    const struct Data *self = _self;
+    struct Data *new = cOBJ(Obj)->clone(_self);
 
     new->datasize = self->datasize;
     if(self->datasize <= SZMAX) {
@@ -50,9 +50,9 @@ static void *AType_clone(const void *_self) {
     return new;
 }
 
-static int AType_cmp(const void *_self, const void *_b) {
-    const struct AType *self = _self;
-    const struct AType *b = _b;
+static int Data_cmp(const void *_self, const void *_b) {
+    const struct Data *self = _self;
+    const struct Data *b = _b;
 
     int ret = cOBJ(Obj)->cmp(_self, _b);
     if(ret) return ret;
@@ -66,12 +66,12 @@ static int AType_cmp(const void *_self, const void *_b) {
     return memcmp((const void *)self->data, (const void *)b->data, self->datasize);
 }
 
-static int AType_isclass(const void *class) {
-    return class == AType || cOBJ(Obj)->isclass(class);
+static int Data_isclass(const void *class) {
+    return class == Data || cOBJ(Obj)->isclass(class);
 }
 
-static int AType_repr(const void *_self, char *s, unsigned l) {
-    const struct AType *self = _self;
+static int Data_repr(const void *_self, char *s, unsigned l) {
+    const struct Data *self = _self;
     int i;
     unsigned dsz;
 
@@ -87,27 +87,27 @@ static int AType_repr(const void *_self, char *s, unsigned l) {
     return dsz != self->datasize;
 }
 
-static const struct cAType _AType = {
+static const struct cData _Data = {
     {   // Obj
-        sizeof(struct AType)    /* size */,
-        AType_ctor              /* ctor */,
-        AType_dtor              /* dtor */,
-        AType_clone             /* clone */,
-        AType_cmp               /* cmp */,
-        AType_isclass           /* isclass */
+        sizeof(struct Data)    /* size */,
+        Data_ctor              /* ctor */,
+        Data_dtor              /* dtor */,
+        Data_clone             /* clone */,
+        Data_cmp               /* cmp */,
+        Data_isclass           /* isclass */
     },
-    AType_repr  /* repr */
+    Data_repr  /* repr */
 };
 
-const void *AType = &_AType;
+const void *Data = &_Data;
 
 // ---- new functions ----
 
 char *obj_repr(const void *_self) {
     static char tmp[256];
 
-    if(_self && obj_isclass(_self, AType)) {
-        const struct cAType *class = CLASS(_self);
+    if(_self && obj_isclass(_self, Data)) {
+        const struct cData *class = CLASS(_self);
         assert(class && class->repr);
 
         class->repr(_self, tmp, sizeof(tmp));
