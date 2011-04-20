@@ -13,6 +13,7 @@ struct cString {
 };
 #define cSTRING(cl) ((struct cString *)(cl))
 
+extern const struct cString _String;
 extern const void *String;
 
 // ---- new functions ----

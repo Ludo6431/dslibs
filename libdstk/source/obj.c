@@ -15,7 +15,7 @@ static void *Obj_dtor(void *_self) {
 
 static void *Obj_clone(const void *_self) {
     const struct Obj *self = _self;
-    struct Obj *ret = malloc(SIZE(self));
+    struct Obj *ret = malloc(O_SIZE(self));
     assert(ret);
 
     ret->class = self->class;
@@ -27,17 +27,13 @@ static int Obj_cmp(const void *_self, const void *_b) {
     return CLASS(_self) != CLASS(_b);
 }
 
-static int Obj_isclass(const void *class) {
-    return class == Obj;
-}
-
-static const struct cObj _Obj = {
+const struct cObj _Obj = {
     sizeof(struct Obj)  /* size */,
+    NULL                /* parent */,
     Obj_ctor            /* ctor */,
     Obj_dtor            /* dtor */,
     Obj_clone           /* clone */,
-    Obj_cmp             /* cmp */,
-    Obj_isclass         /* isclass */
+    Obj_cmp             /* cmp */
 };
 
 const void *Obj = &_Obj;
@@ -65,8 +61,6 @@ void *obj_new(const void *_class, ...) {
     new = class->ctor(new, &ap);
     va_end(ap);
 
-    REFCNT(new) = 0;
-
     return new;
 }
 
@@ -75,7 +69,7 @@ void obj_delete(void *_self) {
         const struct cObj *class = CLASS(_self);
         assert(class && class->dtor);
 
-        if(!REFCNT(_self)) {
+        if(!O_REFCNT(_self)) {
             _self = class->dtor(_self);
              free(_self);
         }
@@ -107,9 +101,13 @@ int obj_cmp(const void *_self, const void *_b) {
 int obj_isclass(const void *_self, const void *_class) {
     if(_self && _class) {
         const struct cObj *class = CLASS(_self);
-        assert(class && class->isclass);
 
-        return class->isclass(_class);
+        while(class) {
+            if(class == _class)
+                return 1;
+
+            class = class->parent;
+        }
     }
 
     return 0;

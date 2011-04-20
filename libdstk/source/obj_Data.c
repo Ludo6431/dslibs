@@ -66,10 +66,6 @@ static int Data_cmp(const void *_self, const void *_b) {
     return memcmp((const void *)self->data, (const void *)b->data, self->datasize);
 }
 
-static int Data_isclass(const void *class) {
-    return class == Data || cOBJ(Obj)->isclass(class);
-}
-
 static int Data_repr(const void *_self, char *s, unsigned l) {
     const struct Data *self = _self;
     int i;
@@ -87,16 +83,16 @@ static int Data_repr(const void *_self, char *s, unsigned l) {
     return dsz != self->datasize;
 }
 
-static const struct cData _Data = {
+const struct cData _Data = {
     {   // Obj
-        sizeof(struct Data)    /* size */,
-        Data_ctor              /* ctor */,
-        Data_dtor              /* dtor */,
-        Data_clone             /* clone */,
-        Data_cmp               /* cmp */,
-        Data_isclass           /* isclass */
+        sizeof(struct Data) /* size */,
+        (void *)&_Obj       /* parent */,
+        Data_ctor           /* ctor */,
+        Data_dtor           /* dtor */,
+        Data_clone          /* clone */,
+        Data_cmp            /* cmp */
     },
-    Data_repr  /* repr */
+    Data_repr               /* repr */
 };
 
 const void *Data = &_Data;

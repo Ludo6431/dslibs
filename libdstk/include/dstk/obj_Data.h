@@ -18,6 +18,7 @@ struct cData {
 };
 #define cDATA(cl) ((struct cData *)(cl))
 
+extern const struct cData _Data;
 extern const void *Data;
 
 // ---- new functions ----

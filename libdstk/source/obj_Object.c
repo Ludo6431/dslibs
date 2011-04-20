@@ -23,10 +23,6 @@ static int Object_cmp(const void *_self, const void *_b) {
     return cOBJ(OList)->cmp(_self, _b);
 }
 
-static int Object_isclass(const void *class) {
-    return class == Object || cOBJ(OList)->isclass(class);
-}
-
 static void *Object_add(void *_self, void *element) {
     return cOLIST(OList)->add(_self, element);
 }
@@ -39,19 +35,19 @@ static void *Object_drop(void *_self, void *element) {
     return cOLIST(OList)->drop(_self, element);
 }
 
-static const struct cObject _Object = {
+const struct cObject _Object = {
     {   // OList
         {   // Obj
-            sizeof(struct Object),
-            Object_ctor,
-            Object_dtor,
-            Object_clone,
-            Object_cmp,
-            Object_isclass
+            sizeof(struct Object)   /* size */,
+            (void *)&_OList         /* parent */,
+            Object_ctor             /* ctor */,
+            Object_dtor             /* dtor */,
+            Object_clone            /* clone */,
+            Object_cmp              /* cmp */
         },
-        Object_add,
-        Object_find,
-        Object_drop
+        Object_add                  /* add */,
+        Object_find                 /* find */,
+        Object_drop                 /* drop */
     }
     // setprop
     // getprop

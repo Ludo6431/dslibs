@@ -20,6 +20,7 @@ struct cObject {
 };
 #define cOBJECT(cl) ((struct cObject *)(cl))
 
+extern const struct cObject _Object;
 extern const void *Object;
 
 // ---- new functions ----

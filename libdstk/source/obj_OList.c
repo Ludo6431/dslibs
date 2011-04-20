@@ -26,7 +26,7 @@ static void *OList_dtor(void *_self) {
     while(tmp) {
         next = tmp->next;
 
-        REFCNT(tmp->data)--;
+        O_REFCNT(tmp->data)--;
         obj_delete(tmp->data);
         free(tmp);
 
@@ -76,14 +76,10 @@ static int OList_cmp(const void *_self, const void *_b) {
     return 0;
 }
 
-static int OList_isclass(const void *class) {
-    return class == OList || cOBJ(Obj)->isclass(class);
-}
-
 static void *OList_add(void *_self, void *element) {
     struct OList *self = _self;
 
-    REFCNT(element)++;
+    O_REFCNT(element)++;
 
     struct list *new = (struct list *)malloc(sizeof(struct list));
     assert(new);
@@ -133,7 +129,7 @@ static void *OList_drop(void *_self, void *element) {
     }
 
     if(curr) {
-        REFCNT(element)--;
+        O_REFCNT(element)--;
 
         if(curr == self->first)
             self->first = self->first->next;
@@ -154,18 +150,18 @@ static void *OList_drop(void *_self, void *element) {
     return NULL;
 }
 
-static const struct cOList _OList = {
+const struct cOList _OList = {
     {   // Obj
         sizeof(struct OList)    /* size */,
+        (void *)&_Obj           /* parent */,
         OList_ctor              /* ctor */,
         OList_dtor              /* dtor */,
         OList_clone             /* clone */,
-        OList_cmp               /* cmp */,
-        OList_isclass           /* isclass */
+        OList_cmp               /* cmp */
     },
-    OList_add       /* add */,
-    OList_find      /* find */,
-    OList_drop      /* drop */
+    OList_add                   /* add */,
+    OList_find                  /* find */,
+    OList_drop                  /* drop */
 };
 
 const void *OList = &_OList;

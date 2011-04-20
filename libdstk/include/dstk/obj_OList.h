@@ -27,6 +27,7 @@ struct cOList {
 };
 #define cOLIST(cl) ((struct cOList *)(cl))
 
+extern const struct cOList _OList;
 extern const void *OList;
 
 // ---- new functions ----
