@@ -6,8 +6,8 @@
 struct Data {
     struct Obj _;
 
-    unsigned datasize;
     unsigned data;
+    unsigned datasize;
 };
 #define DATA(obj) ((struct Data *)(obj))
 

@@ -6,6 +6,7 @@
 
 // object system
 #include <dstk/obj.h>
+#include <dstk/obj_PObj.h>
 #   include <dstk/obj_Data.h>
 #       include <dstk/obj_String.h>
 #   include <dstk/obj_OList.h>
@@ -13,6 +14,9 @@
 
 // utf8
 #include <dstk/utf8.h>
+
+// abstract data
+#include <dstk/adata.h>
 
 // ...
 

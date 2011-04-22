@@ -66,7 +66,7 @@ static int OList_cmp(const void *_self, const void *_b) {
 
     struct list *tmp1 = self->first, *tmp2 = b->first;
     while(tmp1) {
-        ret = cOBJ(Obj)->cmp(tmp1->data, tmp2->data);
+        ret = cOBJ(Obj)->cmp(tmp1->data, tmp2->data);   // just verify it's the same class type ?
         if(ret) return ret;
 
         tmp1 = tmp1->next;
@@ -128,26 +128,20 @@ static void *OList_drop(void *_self, void *element) {
         curr = curr->next;
     }
 
-    if(curr) {
-        O_REFCNT(element)--;
+    if(!curr)
+        return NULL;
 
-        if(curr == self->first)
-            self->first = self->first->next;
+    if(curr == self->first)
+        self->first = self->first->next;
+    if(curr == self->last)
+        self->last = prev;
+    if(prev)
+        prev->next = curr->next;
+    free(curr);
+    self->count--;
 
-        if(curr == self->last)
-            self->last = prev;
-
-        if(prev)
-            prev->next = curr->next;
-
-        free(curr);
-
-        self->count--;
-
-        return element;
-    }
-
-    return NULL;
+    O_REFCNT(element)--;
+    return element;
 }
 
 const struct cOList _OList = {

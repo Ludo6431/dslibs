@@ -19,6 +19,7 @@ static void *Obj_clone(const void *_self) {
     assert(ret);
 
     ret->class = self->class;
+    ret->refcount = 0;
 
     return ret;
 }
@@ -53,7 +54,7 @@ void *obj_new(const void *_class, ...) {
     const struct cObj *class = _class;
     void *new = malloc(class->size);
     assert(new);
-    *(const struct cObj **)new = class;
+    CLASS(new) = class;
 
     assert(class->ctor);
     va_list ap;
@@ -65,14 +66,12 @@ void *obj_new(const void *_class, ...) {
 }
 
 void obj_delete(void *_self) {
-    if(_self) {
+    if(_self && !O_REFCNT(_self)) {
         const struct cObj *class = CLASS(_self);
-        assert(class && class->dtor);
 
-        if(!O_REFCNT(_self)) {
-            _self = class->dtor(_self);
-             free(_self);
-        }
+        assert(class && class->dtor);
+        _self = class->dtor(_self);
+         free(_self);
     }
 }
 

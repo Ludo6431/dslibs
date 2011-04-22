@@ -2,6 +2,14 @@
 #include <stdio.h>
 #include <dstk.h>
 
+void test0() {  // first little test
+    struct String *o = obj_new(String, "Test0!");
+    iprintf("\"%s\"\n", obj_repr(o));
+    obj_delete(o);
+    malloc_stats();
+    iprintf("ok\n");
+}
+
 void test1() {  // general tests (creation / children / deletion / memory leaks)
 #define CLONE1
 #define OBJECT1
@@ -77,6 +85,8 @@ void test2() {  // multiple parents test
 }
 
 void test3() {  // children management
+    malloc_stats();
+
     struct String *txt = obj_new(String, "Test3!");
     iprintf("\"%s\"\n", obj_repr(txt));
 
@@ -113,18 +123,43 @@ void test3() {  // children management
     iprintf("ok\n");
 }
 
+void test4() {  // property test
+    struct PObj *o = obj_new(PObj);
+
+    obj_setprop(o, 0, "wtf", 4);
+    obj_setprop(o, 1, "wth", 4);
+    obj_setprop(o, 2, "ludovic", 8);
+
+    printf("0:%s\n", obj_getprop(o, 0, NULL));
+    printf("1:%s\n", obj_getprop(o, 1, NULL));
+    printf("2:%s\n", obj_getprop(o, 2, NULL));
+
+    obj_setprop(o, 0, "omg", 4);
+    obj_setprop(o, 1, "lacoste", 8);
+    obj_setprop(o, 2, "lac", 4);
+
+    printf("0:%s\n", obj_getprop(o, 0, NULL));
+    printf("1:%s\n", obj_getprop(o, 1, NULL));
+    printf("2:%s\n", obj_getprop(o, 2, NULL));
+
+    obj_delete(o);
+
+    malloc_stats();
+}
+
 //---------------------------------------------------------------------------------
 int main(void) {
 //---------------------------------------------------------------------------------
     consoleDemoInit();
     iprintf("Hello World!\n");
 
+/*    test0();*/
 /*    test1();*/
 /*    test2();*/
-    test3();
+/*    test3();*/
+    test4();
 
     while(1)
         swiWaitForVBlank();
-
 }
 
