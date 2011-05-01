@@ -3,12 +3,14 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "dstk/adata.h"
-
 #include "dstk/obj_PObj.h"
 
+#define PARENT_CLASS ((void *)&_Obj)
+
 static void *PObj_ctor(void *_self, va_list *app) {
-    struct PObj *self = cOBJ(Obj)->ctor(_self, app);
+    struct PObj *self = cOBJ(PARENT_CLASS)->ctor(_self, app);
+
+    self->count = 0;
 
     return self;
 }
@@ -26,17 +28,18 @@ static void *PObj_dtor(void *_self) {
         pr = pr->next;
     }
 
-    return cOBJ(Obj)->dtor(_self);
+    return cOBJ(PARENT_CLASS)->dtor(_self);
 }
 
-static int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize);
+int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize);
 
 static void *PObj_clone(const void *_self) {
-    struct PObj *new = cOBJ(Obj)->clone(_self);
+    struct PObj *new = cOBJ(PARENT_CLASS)->clone(_self);
 
     const struct PObj *self = _self;
 
-    new->count = self->count;
+    new->count = 0;
+
     struct prop *pr = self->first;
     while(pr) {
         PObj_setp(new, pr->key, ad_get(pr->data, pr->datasize), pr->datasize);
@@ -48,7 +51,7 @@ static void *PObj_clone(const void *_self) {
 }
 
 static int PObj_cmp(const void *_self, const void *_b) {
-    int ret = cOBJ(Obj)->cmp(_self, _b);
+    int ret = cOBJ(PARENT_CLASS)->cmp(_self, _b);
     if(ret) return ret;
 
     const struct PObj *self = _self;
@@ -57,7 +60,7 @@ static int PObj_cmp(const void *_self, const void *_b) {
     if(self->count != b->count)
         return self->count - b->count;
 
-    struct prop *pr1 = self->first, *pr2 = b->first;
+    struct prop *pr1 = self->first, *pr2 = b->first;    // TODO : the order doesn't matter
     while(pr1) {
         if(pr1->datasize != pr2->datasize)
             return pr1->datasize - pr2->datasize;
@@ -73,7 +76,7 @@ static int PObj_cmp(const void *_self, const void *_b) {
     return 0;
 }
 
-static int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize) {
+int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize) {
     struct PObj *self = _self;
 
     struct prop *pr = NULL;
@@ -110,7 +113,7 @@ static int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize) {
     return 0;
 }
 
-static void *PObj_getp(void *_self, unsigned key, unsigned *datasize) {
+void *PObj_getp(void *_self, unsigned key, unsigned *datasize) {
     struct PObj *self = _self;
 
     if(!self->count)
@@ -132,7 +135,7 @@ static void *PObj_getp(void *_self, unsigned key, unsigned *datasize) {
     return ad_get(pr->data, pr->datasize);
 }
 
-static int PObj_delp(void *_self, unsigned key) {
+int PObj_delp(void *_self, unsigned key) {
     struct PObj *self = _self;
 
     if(!self->count)
@@ -168,7 +171,9 @@ static int PObj_delp(void *_self, unsigned key) {
 const struct cPObj _PObj = {
     {   // Obj
         sizeof(struct PObj) /* size */,
-        (void *)&_Obj       /* parent */,
+        sizeof(struct cPObj)/* csize */,
+        CFL_DEFAULTS        /* flags */,
+        PARENT_CLASS        /* parent */,
         PObj_ctor           /* ctor */,
         PObj_dtor           /* dtor */,
         PObj_clone          /* clone */,
@@ -186,8 +191,11 @@ const void *PObj = &_PObj;
 int obj_setprop(void *_self, unsigned key, void *data, unsigned datasize) {
     if(_self && obj_isclass(_self, PObj)) {
         const struct cPObj *class = CLASS(_self);
-        assert(class && class->setp);
+        assert(class);
 
+        INIT_CLASS(class);
+
+        assert(class->setp);
         return class->setp(_self, key, data, datasize);
     }
 
@@ -197,8 +205,11 @@ int obj_setprop(void *_self, unsigned key, void *data, unsigned datasize) {
 void *obj_getprop(void *_self, unsigned key, unsigned *datasize) {
     if(_self && obj_isclass(_self, PObj)) {
         const struct cPObj *class = CLASS(_self);
-        assert(class && class->getp);
+        assert(class);
 
+        INIT_CLASS(class);
+
+        assert(class->getp);
         return class->getp(_self, key, datasize);
     }
 
@@ -208,8 +219,11 @@ void *obj_getprop(void *_self, unsigned key, unsigned *datasize) {
 int obj_delprop(void *_self, unsigned key) {
     if(_self && obj_isclass(_self, PObj)) {
         const struct cPObj *class = CLASS(_self);
-        assert(class && class->delp);
+        assert(class);
 
+        INIT_CLASS(class);
+
+        assert(class->delp);
         return class->delp(_self, key);
     }
 

@@ -12,7 +12,9 @@ struct Obj {
 #define OBJ(obj) ((struct Obj *)(obj))
 
 struct cObj {
-    size_t size;
+    unsigned char size;
+    unsigned char csize;
+    unsigned short flags;
     void *parent;
 
     void *  (*ctor)     (void *self, va_list *app);
@@ -27,10 +29,27 @@ extern const void *Obj;
 
 // ---- new functions ----
 
-#define CLASS(obj) (OBJ(obj)->class)
-#define C_PARENT(cl) (cOBJ(cl)->parent)
-#define O_SIZE(obj) (cOBJ(CLASS(obj))->size)
-#define O_REFCNT(obj) (OBJ(obj)->refcount)
+enum CFL {
+    CFL_INIT = BIT(0),
+    NUM_CFL
+};
+
+#define CFL_DEFAULTS (0)
+
+#define C_SIZE(cl)      (cOBJ(cl)->size)
+#define C_CSIZE(cl)     (cOBJ(cl)->csize)
+#define C_FLAGS(cl)     (cOBJ(cl)->flags)
+#define C_PARENT(cl)    (cOBJ(cl)->parent)
+#define CLASS(obj)      (OBJ(obj)->class)
+#define O_SIZE(obj)     C_SIZE(CLASS(obj))
+#define O_REFCNT(obj)   (OBJ(obj)->refcount)
+
+void _init_handlers(void *class);
+#define INIT_CLASS(cl) \
+    do { \
+        if(!(C_FLAGS(cl)&CFL_INIT)) \
+            _init_handlers((void *)cl); \
+    } while(0)
 
 void *CTORV(const void *class, void *_self, ...);
 

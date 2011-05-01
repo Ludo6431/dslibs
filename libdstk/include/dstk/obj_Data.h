@@ -1,20 +1,17 @@
 #ifndef _OBJ_DATA_H
 #define _OBJ_DATA_H
 
-#include "dstk/obj.h"
+#include "dstk/obj_PObj.h"
 
 struct Data {
-    struct Obj _;
-
-    unsigned data;
-    unsigned datasize;
+    struct PObj _;
 };
 #define DATA(obj) ((struct Data *)(obj))
 
 struct cData {
-    struct cObj _;
+    struct cPObj _;
 
-    int     (*repr) (const void *self, char *s, unsigned l);
+    char *  (*repr) (const void *self);
 };
 #define cDATA(cl) ((struct cData *)(cl))
 
@@ -23,7 +20,8 @@ extern const void *Data;
 
 // ---- new functions ----
 
-char *obj_repr(const void *self);
+void *  obj_getdata (const void *self, unsigned *datasize);
+char *  obj_repr    (const void *self);
 
 #endif
 

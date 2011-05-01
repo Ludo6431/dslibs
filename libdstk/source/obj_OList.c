@@ -5,10 +5,12 @@
 
 #include "dstk/obj_OList.h"
 
+#define PARENT_CLASS ((void *)&_Obj)
+
 static void *OList_add(void *_self, void *element);
 
 static void *OList_ctor(void *_self, va_list *app) {
-    struct OList *self = cOBJ(Obj)->ctor(_self, app);
+    struct OList *self = cOBJ(PARENT_CLASS)->ctor(_self, app);
 
     self->count = 0;
 
@@ -34,11 +36,11 @@ static void *OList_dtor(void *_self) {
     }
     self->count = 0;
 
-    return cOBJ(Obj)->dtor(_self);
+    return cOBJ(PARENT_CLASS)->dtor(_self);
 }
 
 static void *OList_clone(const void *_self) {
-    struct OList *new = cOBJ(Obj)->clone(_self);
+    struct OList *new = cOBJ(PARENT_CLASS)->clone(_self);
 
     const struct OList *self = _self;
 
@@ -55,7 +57,7 @@ static void *OList_clone(const void *_self) {
 }
 
 static int OList_cmp(const void *_self, const void *_b) {
-    int ret = cOBJ(Obj)->cmp(_self, _b);
+    int ret = cOBJ(PARENT_CLASS)->cmp(_self, _b);
     if(ret) return ret;
 
     const struct OList *self = _self;
@@ -147,7 +149,9 @@ static void *OList_drop(void *_self, void *element) {
 const struct cOList _OList = {
     {   // Obj
         sizeof(struct OList)    /* size */,
-        (void *)&_Obj           /* parent */,
+        sizeof(struct cOList)   /* csize */,
+        CFL_DEFAULTS            /* flags */,
+        PARENT_CLASS            /* parent */,
         OList_ctor              /* ctor */,
         OList_dtor              /* dtor */,
         OList_clone             /* clone */,
@@ -165,8 +169,11 @@ const void *OList = &_OList;
 void *obj_add(void *_self, void *_element) {
     if(_self && obj_isclass(_self, OList)) {
         const struct cOList *class = CLASS(_self);
-        assert(class && class->add);
+        assert(class);
 
+        INIT_CLASS(class);
+
+        assert(class->add);
         return class->add(_self, _element);
     }
 
@@ -176,8 +183,11 @@ void *obj_add(void *_self, void *_element) {
 void *obj_find(void *_self, void *_element) {
     if(_self && obj_isclass(_self, OList)) {
         const struct cOList *class = CLASS(_self);
-        assert(class && class->find);
+        assert(class);
 
+        INIT_CLASS(class);
+
+        assert(class->find);
         return class->find(_self, _element);
     }
 
@@ -187,8 +197,11 @@ void *obj_find(void *_self, void *_element) {
 void *obj_drop(void *_self, void *_element) {
     if(_self && obj_isclass(_self, OList)) {
         const struct cOList *class = CLASS(_self);
-        assert(class && class->drop);
+        assert(class);
 
+        INIT_CLASS(class);
+
+        assert(class->drop);
         return class->drop(_self, _element);
     }
 

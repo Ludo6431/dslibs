@@ -15,14 +15,13 @@ void test1() {  // general tests (creation / children / deletion / memory leaks)
 #define OBJECT1
 #define CLONE2
 
-    malloc_stats();
     struct String *txt = obj_new(String, "Test1!");
-    iprintf("\"%s\"\n", obj_repr(txt));
+    iprintf("txt:\"%s\"\n", obj_repr(txt));
 
     #ifdef CLONE1
         malloc_stats();
         struct String *txt1 = obj_clone(txt);
-        iprintf("\"%s\"\n", obj_repr(txt1));
+        iprintf("txt1:\"%s\"\n", obj_repr(txt1));
 
         malloc_stats();
         obj_delete(txt1);
@@ -52,7 +51,6 @@ void test1() {  // general tests (creation / children / deletion / memory leaks)
     #endif
 #endif
 
-    malloc_stats();
     obj_delete(txt);
 
     malloc_stats();
@@ -67,13 +65,11 @@ void test2() {  // multiple parents test
     struct Objet *obj2 = obj_new(Object, txt, NULL);
 
     iprintf("RC=%d\n", O_REFCNT(txt));
-    iprintf("%dB\n", DATA(txt)->datasize);
     iprintf("%s from first (RC=%d)\n", obj_repr(OLIST(obj1)->first->data), O_REFCNT(OLIST(obj1)->first->data));
 
     obj_delete(obj1);
 
     iprintf("RC=%d\n", O_REFCNT(txt));
-    iprintf("%dB\n", DATA(txt)->datasize);
     iprintf("%s from first (RC=%d)\n", obj_repr(OLIST(obj2)->first->data), O_REFCNT(OLIST(obj2)->first->data));
 
     obj_delete(obj2);
@@ -85,8 +81,6 @@ void test2() {  // multiple parents test
 }
 
 void test3() {  // children management
-    malloc_stats();
-
     struct String *txt = obj_new(String, "Test3!");
     iprintf("\"%s\"\n", obj_repr(txt));
 
@@ -111,7 +105,9 @@ void test3() {  // children management
         // remove txt from the children
         obj_delete(obj_drop(obj, txt));
 
-        iprintf("%d children and RC=%d\n", OLIST(obj)->count, O_REFCNT(txt));
+        // txt is now invalid here
+
+        iprintf("%d children\n", OLIST(obj)->count);
     }
     else
         iprintf("Wtf ? txt is not there!\n");
@@ -147,17 +143,55 @@ void test4() {  // property test
     malloc_stats();
 }
 
+void test5() {  // clone test
+    struct String *o = obj_new(String, "Test5"), *m;
+    iprintf("\"%s\"\n", obj_repr(o));
+    obj_setprop(o, 0, "wtf", 4);
+    printf("0:%s\n", obj_getprop(o, 0, NULL));
+
+    m = obj_clone(o);
+    printf("0:%s\n", obj_getprop(m, 0, NULL));
+    printf("%d:%s\n", PROP_DATA, obj_getprop(m, PROP_DATA, NULL));
+
+    obj_delete(o);
+    obj_delete(m);
+
+    malloc_stats();
+    iprintf("ok\n");
+}
+
+void test6() {  // multiple cloning
+    int i;
+
+    struct String *txt = obj_new(String, "Test1!");
+    iprintf("txt:\"%s\"\n", obj_repr(txt));
+
+    for(i=0; i<20; i++) {
+        struct String *txt1 = obj_clone(txt);
+        iprintf("txt1:\"%s\"\n", obj_repr(txt1));
+
+        obj_delete(txt1);
+        malloc_stats();
+    }
+
+    obj_delete(txt);
+    malloc_stats();
+}
+
 //---------------------------------------------------------------------------------
 int main(void) {
 //---------------------------------------------------------------------------------
     consoleDemoInit();
+    defaultExceptionHandler();
     iprintf("Hello World!\n");
 
 /*    test0();*/
-/*    test1();*/
+    test1();
 /*    test2();*/
 /*    test3();*/
-    test4();
+/*    test4();*/
+/*    test5();*/
+/*    test6();*/
 
     while(1)
         swiWaitForVBlank();

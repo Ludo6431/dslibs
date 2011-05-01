@@ -1,12 +1,14 @@
 #ifndef _OBJ_POBJ_H
 #define _OBJ_POBJ_H
 
+#include "dstk/adata.h"
+
 #include "dstk/obj.h"
 
 struct prop {
     unsigned key;
 
-    unsigned data;
+    adata_t data;
     unsigned datasize;
 
     struct prop *next;
