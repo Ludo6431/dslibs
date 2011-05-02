@@ -1,7 +1,7 @@
 #ifndef _OBJ_OLIST_H
 #define _OBJ_OLIST_H
 
-#include "dstk/obj.h"
+#include "dstk/obj_PObj.h"
 
 struct list {
     void *data;
@@ -10,7 +10,7 @@ struct list {
 };
 
 struct OList {
-    struct Obj _;
+    struct PObj _;
 
     unsigned count;
     struct list *first;
@@ -19,7 +19,7 @@ struct OList {
 #define OLIST(obj) ((struct OList *)(obj))
 
 struct cOList {
-    struct cObj _;
+    struct cPObj _;
 
     void *  (*add)     (void *self, void *element);
     void *  (*find)    (void *self, void *element);

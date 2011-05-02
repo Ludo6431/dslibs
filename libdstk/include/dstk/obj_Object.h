@@ -5,18 +5,11 @@
 
 struct Object {
     struct OList _;
-
-//    struct Dico *properties;
-    // add signals ?
 };
 #define OBJECT(obj) ((struct Object *)(obj))
 
 struct cObject {
     struct cOList _;
-
-//    void *  setprop (void *self, 
-//    void *  getprop (void *self, 
-//    void *  delprop (void *self, 
 };
 #define cOBJECT(cl) ((struct cObject *)(cl))
 

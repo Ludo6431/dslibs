@@ -31,7 +31,7 @@ static void *PObj_dtor(void *_self) {
     return cOBJ(PARENT_CLASS)->dtor(_self);
 }
 
-int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize);
+static int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize);
 
 static void *PObj_clone(const void *_self) {
     struct PObj *new = cOBJ(PARENT_CLASS)->clone(_self);
@@ -76,7 +76,7 @@ static int PObj_cmp(const void *_self, const void *_b) {
     return 0;
 }
 
-int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize) {
+static int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize) {
     struct PObj *self = _self;
 
     struct prop *pr = NULL;
@@ -113,7 +113,7 @@ int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize) {
     return 0;
 }
 
-void *PObj_getp(void *_self, unsigned key, unsigned *datasize) {
+static void *PObj_getp(void *_self, unsigned key, unsigned *datasize) {
     struct PObj *self = _self;
 
     if(!self->count)
@@ -135,7 +135,7 @@ void *PObj_getp(void *_self, unsigned key, unsigned *datasize) {
     return ad_get(pr->data, pr->datasize);
 }
 
-int PObj_delp(void *_self, unsigned key) {
+static int PObj_delp(void *_self, unsigned key) {
     struct PObj *self = _self;
 
     if(!self->count)

@@ -5,7 +5,7 @@
 
 #include "dstk/obj_OList.h"
 
-#define PARENT_CLASS ((void *)&_Obj)
+#define PARENT_CLASS ((void *)&_PObj)
 
 static void *OList_add(void *_self, void *element);
 
@@ -147,19 +147,24 @@ static void *OList_drop(void *_self, void *element) {
 }
 
 const struct cOList _OList = {
-    {   // Obj
-        sizeof(struct OList)    /* size */,
-        sizeof(struct cOList)   /* csize */,
-        CFL_DEFAULTS            /* flags */,
-        PARENT_CLASS            /* parent */,
-        OList_ctor              /* ctor */,
-        OList_dtor              /* dtor */,
-        OList_clone             /* clone */,
-        OList_cmp               /* cmp */
+    {   // PObj
+        {   // Obj
+            sizeof(struct OList)    /* size */,
+            sizeof(struct cOList)   /* csize */,
+            CFL_DEFAULTS            /* flags */,
+            PARENT_CLASS            /* parent */,
+            OList_ctor              /* ctor */,
+            OList_dtor              /* dtor */,
+            OList_clone             /* clone */,
+            OList_cmp               /* cmp */
+        },
+        NULL                        /* setp */,
+        NULL                        /* getp */,
+        NULL                        /* delp */
     },
-    OList_add                   /* add */,
-    OList_find                  /* find */,
-    OList_drop                  /* drop */
+    OList_add                       /* add */,
+    OList_find                      /* find */,
+    OList_drop                      /* drop */
 };
 
 const void *OList = &_OList;
