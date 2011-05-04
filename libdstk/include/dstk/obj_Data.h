@@ -1,15 +1,15 @@
 #ifndef _OBJ_DATA_H
 #define _OBJ_DATA_H
 
-#include "dstk/obj_PObj.h"
+#include "dstk/obj_AObj.h"
 
 struct Data {
-    struct PObj _;
+    struct AObj _;
 };
 #define DATA(obj) ((struct Data *)(obj))
 
 struct cData {
-    struct cPObj _;
+    struct cAObj _;
 
     char *  (*repr) (const void *self);
 };

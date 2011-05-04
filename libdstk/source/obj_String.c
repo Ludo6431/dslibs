@@ -6,15 +6,15 @@
 
 #define PARENT_CLASS ((void *)&_Data)
 
-static void *String_ctor(void *_self, va_list *app) {
+static void *String_ctor(const void *class, va_list *app) {
     const char *text = va_arg(*app, const char *);
 
-    return CTORV(PARENT_CLASS, _self, strlen(text)+1 /* datasize */, text /* data */);
+    return CTORV(cOBJ(PARENT_CLASS)->ctor, class, strlen(text)+1 /* datasize */, text /* data */);
 }
 
 const struct cString _String = {
     {   // Data
-        {   // PObj
+        {   // AObj
             {   // Obj
                 sizeof(struct String)   /* size */,
                 sizeof(struct cString)  /* csize */,

@@ -4,7 +4,7 @@
 enum {
     PROP_NONE,
     PROP_DATA,
-    PROP_NUM
+    NUM_PROPS
 };
 
 #endif

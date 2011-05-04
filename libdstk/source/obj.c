@@ -4,24 +4,30 @@
 
 #include "dstk/obj.h"
 
-static void *Obj_ctor(void *_self, va_list *app) {
-    OBJ(_self)->refcount = 0;
-    return _self;
+static void *Obj_ctor(const void *class, va_list *app) {
+    struct Obj *new = malloc(C_SIZE(class));
+    assert(new);
+
+    new->class = class;
+    new->refcount = 0;
+
+    return new;
 }
 
-static void *Obj_dtor(void *_self) {
-    return _self;
+static void Obj_dtor(void *_self) {
+    assert(_self);
+    free(_self);
 }
 
 static void *Obj_clone(const void *_self) {
     const struct Obj *self = _self;
-    struct Obj *ret = malloc(O_SIZE(self));
-    assert(ret);
+    struct Obj *new = malloc(O_SIZE(self));
+    assert(new);
 
-    ret->class = self->class;
-    ret->refcount = 0;
+    new->class = self->class;
+    new->refcount = 0;
 
-    return ret;
+    return new;
 }
 
 static int Obj_cmp(const void *_self, const void *_b) {
@@ -49,9 +55,6 @@ void _fill_handlers(void *class, unsigned foff) {
     #define _FIELD(cl, off) (*(void **)(&(((char *)(cl))[(off)])))
     #define IS_IN_CLASS(cl, off) ((off) + sizeof(void *) <= C_CSIZE(cl))
 
-//printf("foff=%d\n", foff);
-//printf("class=%p\n", class);
-
     while(1) {
         while(1) {
             if(!class)
@@ -64,7 +67,6 @@ void _fill_handlers(void *class, unsigned foff) {
                 break;
 
             class = C_PARENT(class);
-//printf("class=%p\n", class);
         }
 
         assert(class && !(C_FLAGS(class)&CFL_INIT) && IS_IN_CLASS(class, foff) && !_FIELD(class, foff));
@@ -72,7 +74,6 @@ void _fill_handlers(void *class, unsigned foff) {
         cl = class;
         while(!_FIELD(cl, foff)) {
             cl = C_PARENT(cl);
-//printf("cl=%p(%s)\n", cl, cl==Obj?"Obj":"other");
             assert(cl);
             assert(IS_IN_CLASS(cl, foff));
         }
@@ -101,84 +102,75 @@ void _init_handlers(void *_class) {
 
     unsigned off;
 
-    for(off=(void *)&class->ctor - (void *)class; off<C_CSIZE(class); off+=sizeof(void *)) {
-//printf("--class=%p|off=%d--\n", class, off);
+    for(off=(void *)&class->ctor - (void *)class; off<C_CSIZE(class); off+=sizeof(void *))
         _fill_handlers(class, off);
-    }
 
     for(;class; class = C_PARENT(class))
         C_FLAGS(class) |= CFL_INIT;
 }
 
-void *CTORV(const void *class, void *_self, ...) {
+inline void *CTORV(void *(*ctor_f)(const void *, va_list *), const void *class, ...) {
+    void *new;
+
     va_list ap;
-    va_start(ap, _self);
-    void *ret=cOBJ(class)->ctor(_self, &ap);
+    va_start(ap, class);
+    new = ctor_f(class, &ap);
     va_end(ap);
 
-    return ret;
+    return new;
 }
 
 void *obj_new(const void *_class, ...) {
     const struct cObj *class = _class;
     assert(class);
-    void *new = malloc(class->size);
-    assert(new);
-    CLASS(new) = class;
+    struct Obj *new;
 
     INIT_CLASS(class);
 
     assert(class->ctor);
     va_list ap;
     va_start(ap, _class);
-    new = class->ctor(new, &ap);
+    new = class->ctor(class, &ap);
     va_end(ap);
 
     return new;
 }
 
 void obj_delete(void *_self) {
-    if(!_self)
+    if(!_self || O_REFCNT(_self))
         return;
 
     const struct cObj *class = CLASS(_self);
     assert(class);
 
-    INIT_CLASS(class);
+//    INIT_CLASS(class);
 
     assert(class->dtor);
-    if(!O_REFCNT(_self)) {
-        _self = class->dtor(_self);
-         free(_self);
-    }
+    class->dtor(_self);
 }
 
 void *obj_clone(void *_self) {
-    void *new = NULL;
-    if(_self) {
-        const struct cObj *class = CLASS(_self);
-        assert(class);
+    assert(_self);
 
-        INIT_CLASS(class);
+    const struct cObj *class = CLASS(_self);
+    assert(class);
 
-        assert(class->clone);
-        new = class->clone(_self);
-    }
-    return new;
+//    INIT_CLASS(class);
+
+    assert(class->clone);
+    return class->clone(_self);
 }
 
 int obj_cmp(const void *_self, const void *_b) {
-    if(_self && _b) {
-        const struct cObj *class = CLASS(_self);
-        assert(class);
+    assert(_self && _b);
 
-        INIT_CLASS(class);
+    const struct cObj *class = CLASS(_self);
+    assert(class);
 
-        assert(class->cmp);
-        return class->cmp(_self, _b);
-    }
+//    INIT_CLASS(class);
 
-    return 0;
+    assert(class->cmp);
+    return class->cmp(_self, _b);
 }
 
 int obj_isclass(const void *_self, const void *_class) {

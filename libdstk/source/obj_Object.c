@@ -9,7 +9,7 @@
 
 const struct cObject _Object = {
     {   // OList
-        {   // PObj
+        {   // AObj
             {   // Obj
                 sizeof(struct Object)   /* size */,
                 sizeof(struct cObject)  /* csize */,

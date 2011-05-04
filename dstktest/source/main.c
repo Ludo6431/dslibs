@@ -126,7 +126,7 @@ void test3() {  // children management
 }
 
 void test4() {  // property test
-    struct PObj *o = obj_new(PObj);
+    struct AObj *o = obj_new(AObj);
 
     obj_setprop(o, 0, "wtf", 4);
     obj_setprop(o, 1, "wth", 4);
@@ -169,16 +169,11 @@ void test5() {  // clone test
 void test6() {  // multiple cloning
     int i;
 
-    struct String *txt = obj_new(String, "Test1!");
+    struct String *txt = obj_new(String, "Test6!");
     iprintf("txt:\"%s\"\n", obj_repr(txt));
 
-    for(i=0; i<20; i++) {
-        struct String *txt1 = obj_clone(txt);
-        iprintf("txt1:\"%s\"\n", obj_repr(txt1));
-
-        obj_delete(txt1);
-        malloc_stats();
-    }
+    for(i=0; i<2000; i++)
+        obj_delete(obj_clone(txt));
 
     obj_delete(txt);
     malloc_stats();
@@ -234,15 +229,15 @@ int main(void) {
     if(fatInitDefault())
         flog = fopen("/dstktest_log.csv", "ab");
 
-/*    test0();*/
-/*    test1();*/
-/*    test2();*/
-/*    test3();*/
-/*    test4();*/
-/*    test5();*/
-/*    test6();*/
+    test0();
+    test1();
+    test2();
+    test3();
+    test4();
+    test5();
+    test6();
 
-    bench0();
+/*    bench0();*/
 
     if(flog)
         fclose(flog);

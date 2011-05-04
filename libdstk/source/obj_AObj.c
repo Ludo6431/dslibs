@@ -3,46 +3,48 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "dstk/obj_PObj.h"
+#include "dstk/obj_AObj.h"
 
 #define PARENT_CLASS ((void *)&_Obj)
 
-static void *PObj_ctor(void *_self, va_list *app) {
-    struct PObj *self = cOBJ(PARENT_CLASS)->ctor(_self, app);
+static void *AObj_ctor(const void *class, va_list *app) {
+    struct AObj *new = cOBJ(PARENT_CLASS)->ctor(class, app);
 
-    self->count = 0;
+    new->count = 0;
 
-    return self;
+    return new;
 }
 
-static void *PObj_dtor(void *_self) {
-    struct PObj *self = _self;
+static void AObj_dtor(void *_self) {
+    struct AObj *self = _self;
 
     struct prop *pr = self->first, *next;
-    while(pr) {
+    while(pr && self->count>0) {
         next = pr->next;
 
         ad_del(pr->data, pr->datasize);
         free(pr);
 
+        self->count--;
         pr = pr->next;
     }
+    assert(!self->count);
 
-    return cOBJ(PARENT_CLASS)->dtor(_self);
+    cOBJ(PARENT_CLASS)->dtor(_self);
 }
 
-static int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize);
+static int AObj_setp(void *_self, unsigned key, void *data, unsigned datasize);
 
-static void *PObj_clone(const void *_self) {
-    struct PObj *new = cOBJ(PARENT_CLASS)->clone(_self);
+static void *AObj_clone(const void *_self) {
+    struct AObj *new = cOBJ(PARENT_CLASS)->clone(_self);
 
-    const struct PObj *self = _self;
+    const struct AObj *self = _self;
 
     new->count = 0;
 
     struct prop *pr = self->first;
     while(pr) {
-        PObj_setp(new, pr->key, ad_get(pr->data, pr->datasize), pr->datasize);
+        AObj_setp(new, pr->key, ad_get(pr->data, pr->datasize), pr->datasize);
 
         pr = pr->next;
     }
@@ -50,12 +52,12 @@ static void *PObj_clone(const void *_self) {
     return new;
 }
 
-static int PObj_cmp(const void *_self, const void *_b) {
+static int AObj_cmp(const void *_self, const void *_b) {
     int ret = cOBJ(PARENT_CLASS)->cmp(_self, _b);
     if(ret) return ret;
 
-    const struct PObj *self = _self;
-    const struct PObj *b = _b;
+    const struct AObj *self = _self;
+    const struct AObj *b = _b;
 
     if(self->count != b->count)
         return self->count - b->count;
@@ -76,8 +78,8 @@ static int PObj_cmp(const void *_self, const void *_b) {
     return 0;
 }
 
-static int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize) {
-    struct PObj *self = _self;
+static int AObj_setp(void *_self, unsigned key, void *data, unsigned datasize) {
+    struct AObj *self = _self;
 
     struct prop *pr = NULL;
     if(self->count) {
@@ -113,8 +115,8 @@ static int PObj_setp(void *_self, unsigned key, void *data, unsigned datasize) {
     return 0;
 }
 
-static void *PObj_getp(void *_self, unsigned key, unsigned *datasize) {
-    struct PObj *self = _self;
+static void *AObj_getp(void *_self, unsigned key, unsigned *datasize) {
+    struct AObj *self = _self;
 
     if(!self->count)
         return NULL;
@@ -135,8 +137,8 @@ static void *PObj_getp(void *_self, unsigned key, unsigned *datasize) {
     return ad_get(pr->data, pr->datasize);
 }
 
-static int PObj_delp(void *_self, unsigned key) {
-    struct PObj *self = _self;
+static int AObj_delp(void *_self, unsigned key) {
+    struct AObj *self = _self;
 
     if(!self->count)
         return 1;
@@ -168,65 +170,59 @@ static int PObj_delp(void *_self, unsigned key) {
     return 0;
 }
 
-const struct cPObj _PObj = {
+const struct cAObj _AObj = {
     {   // Obj
-        sizeof(struct PObj) /* size */,
-        sizeof(struct cPObj)/* csize */,
+        sizeof(struct AObj) /* size */,
+        sizeof(struct cAObj)/* csize */,
         CFL_DEFAULTS        /* flags */,
         PARENT_CLASS        /* parent */,
-        PObj_ctor           /* ctor */,
-        PObj_dtor           /* dtor */,
-        PObj_clone          /* clone */,
-        PObj_cmp            /* cmp */
+        AObj_ctor           /* ctor */,
+        AObj_dtor           /* dtor */,
+        AObj_clone          /* clone */,
+        AObj_cmp            /* cmp */
     },
-    PObj_setp               /* setp */,
-    PObj_getp               /* getp */,
-    PObj_delp               /* delp */
+    AObj_setp               /* setp */,
+    AObj_getp               /* getp */,
+    AObj_delp               /* delp */
 };
 
-const void *PObj = &_PObj;
+const void *AObj = &_AObj;
 
 // ---- new functions ----
 
 int obj_setprop(void *_self, unsigned key, void *data, unsigned datasize) {
-    if(_self && obj_isclass(_self, PObj)) {
-        const struct cPObj *class = CLASS(_self);
-        assert(class);
+    assert(_self && obj_isclass(_self, AObj));
 
-        INIT_CLASS(class);
+    const struct cAObj *class = CLASS(_self);
+    assert(class);
 
-        assert(class->setp);
-        return class->setp(_self, key, data, datasize);
-    }
+    INIT_CLASS(class);
 
-    return 1;
+    assert(class->setp);
+    return class->setp(_self, key, data, datasize);
 }
 
 void *obj_getprop(void *_self, unsigned key, unsigned *datasize) {
-    if(_self && obj_isclass(_self, PObj)) {
-        const struct cPObj *class = CLASS(_self);
-        assert(class);
+    assert(_self && obj_isclass(_self, AObj));
 
-        INIT_CLASS(class);
+    const struct cAObj *class = CLASS(_self);
+    assert(class);
 
-        assert(class->getp);
-        return class->getp(_self, key, datasize);
-    }
+    INIT_CLASS(class);
 
-    return NULL;
+    assert(class->getp);
+    return class->getp(_self, key, datasize);
 }
 
 int obj_delprop(void *_self, unsigned key) {
-    if(_self && obj_isclass(_self, PObj)) {
-        const struct cPObj *class = CLASS(_self);
-        assert(class);
+    assert(_self && obj_isclass(_self, AObj));
 
-        INIT_CLASS(class);
+    const struct cAObj *class = CLASS(_self);
+    assert(class);
 
-        assert(class->delp);
-        return class->delp(_self, key);
-    }
+    INIT_CLASS(class);
 
-    return 1;
+    assert(class->delp);
+    return class->delp(_self, key);
 }
 

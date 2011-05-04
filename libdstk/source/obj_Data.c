@@ -7,17 +7,17 @@
 
 #include "dstk/obj_Data.h"
 
-#define PARENT_CLASS ((void *)&_PObj)
+#define PARENT_CLASS ((void *)&_AObj)
 
-static void *Data_ctor(void *_self, va_list *app) {
-    struct Data *self = cOBJ(PARENT_CLASS)->ctor(_self, app);
+static void *Data_ctor(const void *class, va_list *app) {
+    struct Data *new = cOBJ(PARENT_CLASS)->ctor(class, app);
 
     unsigned datasize = va_arg(*app, unsigned);
     void *data = va_arg(*app, void *);
 
-    obj_setprop(self, PROP_DATA, data, datasize);
+    obj_setprop(new, PROP_DATA, data, datasize);
 
-    return self;
+    return new;
 }
 
 char *Data_repr(const void *_self) {
@@ -27,7 +27,7 @@ char *Data_repr(const void *_self) {
 }
 
 const struct cData _Data = {
-    {   // PObj
+    {   // AObj
         {   // Obj
             sizeof(struct Data) /* size */,
             sizeof(struct cData)/* csize */,

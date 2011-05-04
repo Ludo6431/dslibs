@@ -1,5 +1,5 @@
-#ifndef _OBJ_POBJ_H
-#define _OBJ_POBJ_H
+#ifndef _OBJ_AOBJ_H
+#define _OBJ_AOBJ_H
 
 #include "dstk/adata.h"
 
@@ -14,26 +14,26 @@ struct prop {
     struct prop *next;
 };
 
-struct PObj {
+struct AObj {
     struct Obj _;
 
     unsigned count;
     struct prop *first;
     struct prop *last;
 };
-#define POBJ(obj) ((struct PObj *)(obj))
+#define AOBJ(obj) ((struct AObj *)(obj))
 
-struct cPObj {
+struct cAObj {
     struct cObj _;
 
     int     (*setp)    (void *self, unsigned key, void *data, unsigned datasize);
     void *  (*getp)    (void *self, unsigned key, unsigned *destsize);
     int     (*delp)    (void *self, unsigned key);
 };
-#define cPOBJ(cl) ((struct cPObj *)(cl))
+#define cAOBJ(cl) ((struct cAObj *)(cl))
 
-extern const struct cPObj _PObj;
-extern const void *PObj;
+extern const struct cAObj _AObj;
+extern const void *AObj;
 
 // ---- new functions ----
 

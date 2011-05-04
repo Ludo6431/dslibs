@@ -17,8 +17,8 @@ struct cObj {
     unsigned short flags;
     void *parent;
 
-    void *  (*ctor)     (void *self, va_list *app);
-    void *  (*dtor)     (void *self);
+    void *  (*ctor)     (const void *class, va_list *app);
+    void    (*dtor)     (void *self);
     void *  (*clone)    (const void *self);
     int     (*cmp)      (const void *self, const void *b);
 };
@@ -31,7 +31,7 @@ extern const void *Obj;
 
 enum CFL {
     CFL_INIT = BIT(0),
-    NUM_CFL
+    NUM_CFLS
 };
 
 #define CFL_DEFAULTS (0)
@@ -51,10 +51,10 @@ void _init_handlers(void *class);
             _init_handlers((void *)cl); \
     } while(0)
 
-void *CTORV(const void *class, void *_self, ...);
+inline void *CTORV(void *(*ctor_f)(const void *, va_list *), const void *class, ...);
 
 void *  obj_new     (const void *class, ...);
-void    obj_delete  (void *item);
+void    obj_delete  (void *self);
 void *  obj_clone   (void *self);
 int     obj_cmp     (const void *self, const void *b);
 int     obj_isclass (const void *self, const void *class);

@@ -8,8 +8,8 @@ void dstk_assert(const char *file, int line, const char *func, const char *cond)
     while(1);
 }
 
-void dstk_free(void *p) {
-    printf("free(%p)", p);
+void dstk_free(void *p, const char *func) {
+    printf("[%s]free(%p)", func, p);
     if(!p) {
         while(1);
     }
