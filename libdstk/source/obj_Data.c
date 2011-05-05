@@ -38,9 +38,7 @@ const struct cData _Data = {
             NULL                /* clone */,
             NULL                /* cmp */
         },
-        NULL,                   /* setp */
-        NULL,                   /* getp */
-        NULL                    /* delp */
+        NULL                    /* sigemit */
     },
     Data_repr                   /* repr */
 };
@@ -50,23 +48,20 @@ const void *Data = &_Data;
 // ---- new functions ----
 
 void *obj_getdata(const void *_self, unsigned *datasize) {
-    if(_self && obj_isclass(_self, Data))
-        return obj_getprop((void *)_self, PROP_DATA, datasize);
+    assert(_self && obj_isclass(_self, Data));
 
-    return NULL;
+    return obj_getprop((void *)_self, PROP_DATA, datasize);
 }
 
 char *obj_repr(const void *_self) {
-    if(_self && obj_isclass(_self, Data)) {
-        const struct cData *class = CLASS(_self);
-        assert(class);
+    assert(_self && obj_isclass(_self, Data));
 
-        INIT_CLASS(class);
+    const struct cData *class = CLASS(_self);
+    assert(class);
 
-        assert(class->repr);
-        return class->repr(_self);
-    }
+//    INIT_CLASS(class);
 
-    return NULL;
+    assert(class->repr);
+    return class->repr(_self);
 }
 

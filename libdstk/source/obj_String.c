@@ -25,9 +25,7 @@ const struct cString _String = {
                 NULL                    /* clone */,
                 NULL                    /* cmp */
             },
-            NULL                        /* setp */,
-            NULL                        /* getp */,
-            NULL                        /* delp */
+            NULL                        /* sigemit */
         },
         NULL                            /* repr */
     }

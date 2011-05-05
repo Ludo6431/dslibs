@@ -20,9 +20,7 @@ const struct cObject _Object = {
                 NULL                    /* clone */,
                 NULL                    /* cmp */
             },
-            NULL                        /* setp */,
-            NULL                        /* getp */,
-            NULL                        /* delp */
+            NULL                        /* sigemit */
         },
         NULL                            /* add */,
         NULL                            /* find */,

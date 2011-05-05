@@ -12,6 +12,7 @@
 #       include <dstk/obj_OList.h>          // may have children
 #           include <dstk/obj_Object.h>
 #include <dstk/properties.h>                // definition of standard properties
+#include <dstk/signals.h>                   // definition of standard signals
 
 // utf8
 #include <dstk/utf8.h>

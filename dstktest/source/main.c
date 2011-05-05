@@ -16,13 +16,19 @@ void test0() {  // first little test
     iprintf("ok\n");
 }
 
-void test1() {  // general tests (creation / children / deletion / memory leaks)
+void test1() {  // general tests (creation / children / deletion / memory leaks / signals)
 #define CLONE1
 #define OBJECT1
-#define CLONE2
+#   define CLONE2
 
     struct String *txt = obj_new(String, "Test1!");
     iprintf("txt:\"%s\"\n", obj_repr(txt));
+
+    void _handler(struct String *txt, char *s) {
+        iprintf("%s\n", s);
+    }
+    obj_sigconnect(txt, SIG_CLONED, (Obj_CB)_handler, "txt cloned !");
+    obj_sigconnect(txt, SIG_DESTROYED, (Obj_CB)_handler, "txt destroyed !");
 
     #ifdef CLONE1
         malloc_stats();
@@ -39,6 +45,8 @@ void test1() {  // general tests (creation / children / deletion / memory leaks)
     iprintf("%d children\n", OLIST(obj)->count);
     iprintf("%s from first (RC=%d)\n", obj_repr(OLIST(obj)->first->data), O_REFCNT(OLIST(obj)->first->data));
     iprintf("%s from last (RC=%d)\n", obj_repr(OLIST(obj)->last->data), O_REFCNT(OLIST(obj)->last->data));
+
+    obj_sigconnect(obj, SIG_CLONED, (Obj_CB)_handler, "obj cloned !");
 
     #ifdef CLONE2
         malloc_stats();
@@ -229,13 +237,13 @@ int main(void) {
     if(fatInitDefault())
         flog = fopen("/dstktest_log.csv", "ab");
 
-    test0();
+/*    test0();*/
     test1();
-    test2();
-    test3();
-    test4();
-    test5();
-    test6();
+/*    test2();*/
+/*    test3();*/
+/*    test4();*/
+/*    test5();*/
+/*    test6();*/
 
 /*    bench0();*/
 

@@ -1,12 +1,15 @@
 #ifndef _OBJ_AOBJ_H
 #define _OBJ_AOBJ_H
 
+#include <stdarg.h>
+
+#include "dstk/signals.h"
 #include "dstk/adata.h"
 
 #include "dstk/obj.h"
 
 struct prop {
-    unsigned key;
+    unsigned pid;
 
     adata_t data;
     unsigned datasize;
@@ -14,21 +17,35 @@ struct prop {
     struct prop *next;
 };
 
+struct sig {
+    unsigned sid;
+
+    unsigned count;
+    void **handlers;
+    void **userdata;
+
+    struct sig *next;
+};
+
 struct AObj {
     struct Obj _;
 
-    unsigned count;
-    struct prop *first;
-    struct prop *last;
+    // properties
+    unsigned p_count;
+    struct prop *p_first;
+    struct prop *p_last;
+
+    // signals
+    unsigned s_count;
+    struct sig *s_first;
+    struct sig *s_last;
 };
 #define AOBJ(obj) ((struct AObj *)(obj))
 
 struct cAObj {
     struct cObj _;
 
-    int     (*setp)    (void *self, unsigned key, void *data, unsigned datasize);
-    void *  (*getp)    (void *self, unsigned key, unsigned *destsize);
-    int     (*delp)    (void *self, unsigned key);
+    void    (*sigemit)  (void *self, unsigned sid, va_list *app);
 };
 #define cAOBJ(cl) ((struct cAObj *)(cl))
 
@@ -37,9 +54,17 @@ extern const void *AObj;
 
 // ---- new functions ----
 
-int     obj_setprop (void *self, unsigned key, void *data, unsigned datasize);
-void *  obj_getprop (void *self, unsigned key, unsigned *datasize);
-int     obj_delprop (void *self, unsigned key);
+// properties
+void    obj_setprop (void *self, unsigned pid, void *data, unsigned datasize);
+void *  obj_getprop (void *self, unsigned pid, unsigned *datasize);
+void    obj_delprop (void *self, unsigned pid);
+
+// signals
+typedef void *(*Obj_CB)(void *self, void *userdata);
+
+void    obj_sigconnect      (void *self, unsigned sid, Obj_CB cb, void *userdata);
+void    obj_sigemit         (void *self, unsigned sid, ...);
+void    obj_sigdisconnect   (void *self, unsigned sid, void *cb);
 
 #endif
 

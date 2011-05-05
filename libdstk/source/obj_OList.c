@@ -161,9 +161,7 @@ const struct cOList _OList = {
             OList_clone             /* clone */,
             OList_cmp               /* cmp */
         },
-        NULL                        /* setp */,
-        NULL                        /* getp */,
-        NULL                        /* delp */
+        NULL                        /* sigemit */
     },
     OList_add                       /* add */,
     OList_find                      /* find */,
@@ -180,7 +178,7 @@ void *obj_add(void *_self, void *_element) {
     const struct cOList *class = CLASS(_self);
     assert(class);
 
-    INIT_CLASS(class);
+//    INIT_CLASS(class);
 
     assert(class->add);
     return class->add(_self, _element);
@@ -192,7 +190,7 @@ void *obj_find(void *_self, void *_element) {
     const struct cOList *class = CLASS(_self);
     assert(class);
 
-    INIT_CLASS(class);
+//    INIT_CLASS(class);
 
     assert(class->find);
     return class->find(_self, _element);
@@ -204,7 +202,7 @@ void *obj_drop(void *_self, void *_element) {
     const struct cOList *class = CLASS(_self);
     assert(class);
 
-    INIT_CLASS(class);
+//    INIT_CLASS(class);
 
     assert(class->drop);
     return class->drop(_self, _element);
