@@ -7,7 +7,7 @@
 
 #include "dstk/obj_Data.h"
 
-#define PARENT_CLASS ((void *)&_AObj)
+#define PARENT_CLASS ((void *)&_Object)
 
 static void *Data_ctor(const void *class, va_list *app) {
     struct Data *new = cOBJ(PARENT_CLASS)->ctor(class, app);
@@ -27,7 +27,7 @@ char *Data_repr(const void *_self) {
 }
 
 const struct cData _Data = {
-    {   // AObj
+    {   // Object
         {   // Obj
             sizeof(struct Data) /* size */,
             sizeof(struct cData)/* csize */,
@@ -58,8 +58,6 @@ char *obj_repr(const void *_self) {
 
     const struct cData *class = CLASS(_self);
     assert(class);
-
-//    INIT_CLASS(class);
 
     assert(class->repr);
     return class->repr(_self);

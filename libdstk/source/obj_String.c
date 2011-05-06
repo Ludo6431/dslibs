@@ -14,7 +14,7 @@ static void *String_ctor(const void *class, va_list *app) {
 
 const struct cString _String = {
     {   // Data
-        {   // AObj
+        {   // Object
             {   // Obj
                 sizeof(struct String)   /* size */,
                 sizeof(struct cString)  /* csize */,

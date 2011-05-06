@@ -4,7 +4,7 @@
 
 #include "dstk/obj.h"
 
-static void *Obj_ctor(const void *class, va_list *app) {
+static void *ctor(const void *class, va_list *app) {
     struct Obj *new = malloc(C_SIZE(class));
     assert(new);
 
@@ -14,12 +14,12 @@ static void *Obj_ctor(const void *class, va_list *app) {
     return new;
 }
 
-static void Obj_dtor(void *_self) {
+static void dtor(void *_self) {
     assert(_self);
     free(_self);
 }
 
-static void *Obj_clone(const void *_self) {
+static void *clone(const void *_self) {
     const struct Obj *self = _self;
     struct Obj *new = malloc(O_SIZE(self));
     assert(new);
@@ -30,7 +30,7 @@ static void *Obj_clone(const void *_self) {
     return new;
 }
 
-static int Obj_cmp(const void *_self, const void *_b) {
+static int cmp(const void *_self, const void *_b) {
     return CLASS(_self) != CLASS(_b);
 }
 
@@ -39,10 +39,10 @@ const struct cObj _Obj = {
     sizeof(struct cObj)     /* csize */,
     CFL_DEFAULTS | CFL_INIT /* flags */,
     NULL                    /* parent */,
-    Obj_ctor                /* ctor */,
-    Obj_dtor                /* dtor */,
-    Obj_clone               /* clone */,
-    Obj_cmp                 /* cmp */
+    ctor                    /* ctor */,
+    dtor                    /* dtor */,
+    clone                   /* clone */,
+    cmp                     /* cmp */
 };
 
 const void *Obj = &_Obj;
@@ -143,8 +143,6 @@ void obj_delete(void *_self) {
     const struct cObj *class = CLASS(_self);
     assert(class);
 
-//    INIT_CLASS(class);
-
     assert(class->dtor);
     class->dtor(_self);
 }
@@ -155,8 +153,6 @@ void *obj_clone(void *_self) {
     const struct cObj *class = CLASS(_self);
     assert(class);
 
-//    INIT_CLASS(class);
-
     assert(class->clone);
     return class->clone(_self);
 }
@@ -166,8 +162,6 @@ int obj_cmp(const void *_self, const void *_b) {
 
     const struct cObj *class = CLASS(_self);
     assert(class);
-
-//    INIT_CLASS(class);
 
     assert(class->cmp);
     return class->cmp(_self, _b);

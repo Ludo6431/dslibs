@@ -3,26 +3,26 @@
 #include <stdarg.h>
 #include <string.h>
 
-#include "dstk/obj_OList.h"
+#include "dswm/obj_Container.h"
 
-#define PARENT_CLASS ((void *)&_AObj)
+#define PARENT_CLASS ((void *)&_Widget)
 
-static void *OList_add(void *_self, void *element);
+static void *Container_add(void *_self, void *element);
 
-static void *OList_ctor(const void *class, va_list *app) {
-    struct OList *new = cOBJ(PARENT_CLASS)->ctor(class, app);
+static void *Container_ctor(const void *class, va_list *app) {
+    struct Container *new = cOBJ(PARENT_CLASS)->ctor(class, app);
 
     new->count = 0;
 
     void *data;
     while((data = va_arg(*app, void *)))
-        OList_add(new, data);
+        Container_add(new, data);
 
     return new;
 }
 
-static void OList_dtor(void *_self) {
-    struct OList *self = _self;
+static void Container_dtor(void *_self) {
+    struct Container *self = _self;
 
     struct list *tmp = self->first, *next;
     while(tmp && self->count>0) {
@@ -40,16 +40,16 @@ static void OList_dtor(void *_self) {
     cOBJ(PARENT_CLASS)->dtor(_self);
 }
 
-static void *OList_clone(const void *_self) {
-    struct OList *new = cOBJ(PARENT_CLASS)->clone(_self);
+static void *Container_clone(const void *_self) {
+    struct Container *new = cOBJ(PARENT_CLASS)->clone(_self);
 
-    const struct OList *self = _self;
+    const struct Container *self = _self;
 
     new->count = 0;
 
     struct list *tmp = self->first;
     while(tmp) {
-        OList_add(new, obj_clone(tmp->data));
+        Container_add(new, obj_clone(tmp->data));
 
         tmp = tmp->next;
     }
@@ -57,12 +57,12 @@ static void *OList_clone(const void *_self) {
     return new;
 }
 
-static int OList_cmp(const void *_self, const void *_b) {
+static int Container_cmp(const void *_self, const void *_b) {
     int ret = cOBJ(PARENT_CLASS)->cmp(_self, _b);
     if(ret) return ret;
 
-    const struct OList *self = _self;
-    const struct OList *b = _b;
+    const struct Container *self = _self;
+    const struct Container *b = _b;
 
     if(self->count != b->count)
         return self->count - b->count;
@@ -79,8 +79,8 @@ static int OList_cmp(const void *_self, const void *_b) {
     return 0;
 }
 
-static void *OList_add(void *_self, void *element) {
-    struct OList *self = _self;
+static void *Container_add(void *_self, void *element) {
+    struct Container *self = _self;
 
     assert(element && obj_isclass(element, Obj));
 
@@ -105,8 +105,8 @@ static void *OList_add(void *_self, void *element) {
     return element;
 }
 
-static void *OList_find(void *_self, void *element) {
-    struct OList *self = _self;
+static void *Container_find(void *_self, void *element) {
+    struct Container *self = _self;
 
     if(self->count) {
         struct list *tmp = self->first;
@@ -121,8 +121,8 @@ static void *OList_find(void *_self, void *element) {
     return NULL;
 }
 
-static void *OList_drop(void *_self, void *element) {
-    struct OList *self = _self;
+static void *Container_drop(void *_self, void *element) {
+    struct Container *self = _self;
 
     struct list *curr = self->first, *prev = NULL;
     while(curr) {
@@ -149,60 +149,57 @@ static void *OList_drop(void *_self, void *element) {
     return element;
 }
 
-const struct cOList _OList = {
-    {   // AObj
-        {   // Obj
-            sizeof(struct OList)    /* size */,
-            sizeof(struct cOList)   /* csize */,
-            CFL_DEFAULTS            /* flags */,
-            PARENT_CLASS            /* parent */,
-            OList_ctor              /* ctor */,
-            OList_dtor              /* dtor */,
-            OList_clone             /* clone */,
-            OList_cmp               /* cmp */
+const struct cContainer _Container = {
+    {   // Widget
+        {   // Object
+            {   // Obj
+                sizeof(struct Container)    /* size */,
+                sizeof(struct cContainer)   /* csize */,
+                CFL_DEFAULTS                /* flags */,
+                PARENT_CLASS                /* parent */,
+                Container_ctor              /* ctor */,
+                Container_dtor              /* dtor */,
+                Container_clone             /* clone */,
+                Container_cmp               /* cmp */
+            },
+            NULL                            /* sigemit */
         },
-        NULL                        /* sigemit */
+        // TODO
     },
-    OList_add                       /* add */,
-    OList_find                      /* find */,
-    OList_drop                      /* drop */
+    Container_add                           /* add */,
+    Container_find                          /* find */,
+    Container_drop                          /* drop */
 };
 
-const void *OList = &_OList;
+const void *Container = &_Container;
 
 // ---- new functions ----
 
 void *obj_add(void *_self, void *_element) {
-    assert(_self && obj_isclass(_self, OList));
+    assert(_self && obj_isclass(_self, Container));
 
-    const struct cOList *class = CLASS(_self);
+    const struct cContainer *class = CLASS(_self);
     assert(class);
-
-//    INIT_CLASS(class);
 
     assert(class->add);
     return class->add(_self, _element);
 }
 
 void *obj_find(void *_self, void *_element) {
-    assert(_self && obj_isclass(_self, OList));
+    assert(_self && obj_isclass(_self, Container));
 
-    const struct cOList *class = CLASS(_self);
+    const struct cContainer *class = CLASS(_self);
     assert(class);
-
-//    INIT_CLASS(class);
 
     assert(class->find);
     return class->find(_self, _element);
 }
 
 void *obj_drop(void *_self, void *_element) {
-    assert(_self && obj_isclass(_self, OList));
+    assert(_self && obj_isclass(_self, Container));
 
-    const struct cOList *class = CLASS(_self);
+    const struct cContainer *class = CLASS(_self);
     assert(class);
-
-//    INIT_CLASS(class);
 
     assert(class->drop);
     return class->drop(_self, _element);

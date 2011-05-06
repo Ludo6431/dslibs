@@ -1,7 +1,7 @@
-#ifndef _OBJ_OLIST_H
-#define _OBJ_OLIST_H
+#ifndef _OBJ_CONTAINER_H
+#define _OBJ_CONTAINER_H
 
-#include "dstk/obj_AObj.h"
+#include "dswm/obj_Widget.h"
 
 struct list {
     void *data;
@@ -9,26 +9,26 @@ struct list {
     struct list *next;
 };
 
-struct OList {
-    struct AObj _;
+struct Container {
+    struct Widget _;
 
     unsigned count;
     struct list *first;
     struct list *last;
 };
-#define OLIST(obj) ((struct OList *)(obj))
+#define CONTAINER(obj) ((struct Container *)(obj))
 
-struct cOList {
-    struct cAObj _;
+struct cContainer {
+    struct cWidget _;
 
     void *  (*add)     (void *self, void *element);
     void *  (*find)    (void *self, void *element);
     void *  (*drop)    (void *self, void *element);
 };
-#define cOLIST(cl) ((struct cOList *)(cl))
+#define cCONTAINER(cl) ((struct cContainer *)(cl))
 
-extern const struct cOList _OList;
-extern const void *OList;
+extern const struct cContainer _Container;
+extern const void *Container;
 
 // ---- new functions ----
 
