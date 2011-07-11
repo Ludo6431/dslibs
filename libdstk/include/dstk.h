@@ -15,8 +15,9 @@
 // utf8
 #include <dstk/utf8.h>
 
-// abstract data
-#include <dstk/adata.h>
+// data management
+#include <dstk/adata.h> // abstract data
+#include <dstk/slice.h> // slice
 
 // ...
 

@@ -97,6 +97,29 @@ void bench0() {
         _bench0(i, NUM);
 }
 
+void slice_test() {
+    typedef struct {
+        unsigned int f1, f2, f3;
+    } val;
+
+    val *v = slice_new(val);
+printf("v=%p\n", v);
+
+    v->f1 = 1;
+    v->f2 = 43;
+    v->f3 = 51;
+
+    val *w = slice_dup(val, v);
+printf("w=%p\n", w);
+
+printf("f1=%d\n", w->f1);
+printf("f2=%d\n", w->f2);
+printf("f3=%d\n", w->f3);
+
+    slice_delete(val, v);
+    slice_delete(val, w);
+}
+
 int main(void) {
     consoleDemoInit();
     defaultExceptionHandler();
@@ -105,11 +128,13 @@ int main(void) {
     if(fatInitDefault())
         flog = fopen("/dstktest_log.csv", "ab");
 
-    test0();
+/*    test0();*/
 /*    test1();*/
 /*    test2();*/
 
 /*    bench0();*/
+
+    slice_test();
 
     iprintf("ok");
 
