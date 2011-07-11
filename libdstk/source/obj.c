@@ -2,10 +2,12 @@
 #include <assert.h>
 #include <stdarg.h>
 
+#include "dstk/slice.h"
+
 #include "dstk/obj.h"
 
 static void *ctor(const void *class, va_list *app) {
-    struct Obj *new = malloc(C_SIZE(class));
+    struct Obj *new = slice_alloc(C_SIZE(class));
     assert(new);
 
     new->class = class;
@@ -16,12 +18,12 @@ static void *ctor(const void *class, va_list *app) {
 
 static void dtor(void *_self) {
     assert(_self);
-    free(_self);
+    slice_free(O_SIZE(_self), _self);
 }
 
 static void *clone(const void *_self) {
     const struct Obj *self = _self;
-    struct Obj *new = malloc(O_SIZE(self));
+    struct Obj *new = slice_alloc(O_SIZE(self));
     assert(new);
 
     new->class = self->class;
