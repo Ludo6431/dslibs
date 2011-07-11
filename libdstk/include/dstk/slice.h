@@ -8,9 +8,13 @@ void            slice_free      (size_t block_size, void *mem_block);
 
 // TODO: slice_free_chain
 
-#define slice_new(t) ((t *)slice_alloc(sizeof(t)))
-#define slice_dup(t, m) ((t *)slice_copy(sizeof(t), m))
-#define slice_delete(t, m) slice_free(sizeof(t), m)
+#define         slice_new(t)        ((t *)slice_alloc(sizeof(t)))
+#define         slice_dup(t, m)     ((t *)slice_copy(sizeof(t), m))
+#define         slice_delete(t, m)  slice_free(sizeof(t), m)
+
+// ------------ DEBUG ------------
+
+void            slice_dump      (size_t block_size);
 
 #endif
 

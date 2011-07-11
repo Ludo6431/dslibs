@@ -14,7 +14,8 @@ struct blist {
 
     size_t nbblocks;
     unsigned int free_mask;
-};  // the data is allocated right after the blist in memory
+};  // the data is allocated right after the blist in memory, hence the _GET_BLOCK define :
+#define _GET_BLOCK(sizelist, blockslist, i) ((void *)&(  ((char *)(blockslist))[sizeof(struct blist) + (i)*((sizelist)->block_size)]  ))
 
 struct sllist {
     struct sllist *next;
@@ -26,8 +27,6 @@ struct sllist {
 };
 
 static struct sllist *list = NULL;
-
-#define _GET_BLOCK(sizelist, blockslist, i) ((void *)&(  ((char *)(blockslist))[sizeof(struct blist) + (i)*((sizelist)->block_size)]  ))
 
 void *slice_alloc(size_t block_size) {
     struct sllist *tmp = list, *prev = NULL;
@@ -133,5 +132,36 @@ void slice_free(size_t block_size, void *mem_block) {
     }
 
     // unknown block pointer
+}
+
+// --------------- DEBUG --------------
+
+void slice_dump(size_t _block_size) {
+    struct sllist *tmp = list;
+    struct blist *btmp;
+    size_t block_size;
+    int i;
+
+    block_size = MEMALIGN4(_block_size);
+
+    while(tmp) {    // search if it already exists
+        if(tmp->block_size == block_size)
+            break;
+
+        tmp = tmp->next;
+    }
+
+    if(!tmp) {
+        iprintf("Unknown block size\n");
+        return; // unknown block size
+    }
+
+    iprintf("There are %d list(s) of %d(%d)bytes blocks\n", tmp->nblists, block_size, _block_size);
+
+    for(btmp = tmp->last_list, i = 0; btmp; btmp = btmp->next, i++) {
+        iprintf("list #%d:\n", i+1);
+        iprintf("\t%d blocks\n", btmp->nbblocks);
+        printf("\tfree blocks: %04x\n", btmp->free_mask);
+    }
 }
 

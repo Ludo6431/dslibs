@@ -6,8 +6,6 @@
 
 #include "prof.h"
 
-FILE *flog = NULL;
-
 void test0() {  // first little test
     struct String *o = obj_new(String, "Test0!");
     iprintf("\"%s\"\n", obj_repr(o));
@@ -55,7 +53,7 @@ void test2() {  // clone test
     malloc_stats();
 }
 
-void _bench0(int len, unsigned int NUM) {
+void _bench0(int len, unsigned int NUM, FILE *flog) {
     int i;
     unsigned long time;
     void *data = malloc(len);
@@ -79,7 +77,7 @@ void _bench0(int len, unsigned int NUM) {
     free(data);
 }
 
-void bench0() {
+void bench0(FILE *flog) {
     int i;
 
     #define NUM 20000
@@ -91,16 +89,18 @@ void bench0() {
         fprintf(flog, "\"len\",\"NUM\",\"cycles\",\"cyc/op\"\n");
 
     for(i=1; i<10; i+=1)
-        _bench0(i, NUM);
+        _bench0(i, NUM, flog);
 
     for(i=10; i<=100; i+=10)
-        _bench0(i, NUM);
+        _bench0(i, NUM, flog);
 }
 
 void slice_test() {
     typedef struct {
         unsigned int f1, f2, f3;
     } val;
+
+    iprintf("Slice test\n");
 
     val *v = slice_new(val);
 printf("v=%p\n", v);
@@ -109,15 +109,22 @@ printf("v=%p\n", v);
     v->f2 = 43;
     v->f3 = 51;
 
-    val *w = slice_dup(val, v);
-printf("w=%p\n", w);
+#define NB 15
+    val *w[NB];
+    int i;
 
-printf("f1=%d\n", w->f1);
-printf("f2=%d\n", w->f2);
-printf("f3=%d\n", w->f3);
+    for(i=0; i<NB; i++) {
+        w[i] = slice_dup(val, i?w[i-1]:v);
+        printf("w[%02d]=%p\n", i, w[i]);
+    }
+
+    printf("f1=%d\n", w[NB-1]->f1);
+    printf("f2=%d\n", w[NB-1]->f2);
+    printf("f3=%d\n", w[NB-1]->f3);
 
     slice_delete(val, v);
-    slice_delete(val, w);
+    for(i=0; i<NB; i++)
+        slice_delete(val, w[i]);
 }
 
 int main(void) {
@@ -125,6 +132,7 @@ int main(void) {
     defaultExceptionHandler();
     iprintf("Hello World!\n");
 
+    FILE *flog = NULL;
     if(fatInitDefault())
         flog = fopen("/dstktest_log.csv", "ab");
 
@@ -132,7 +140,7 @@ int main(void) {
 /*    test1();*/
 /*    test2();*/
 
-/*    bench0();*/
+/*    bench0(flog);*/
 
     slice_test();
 
