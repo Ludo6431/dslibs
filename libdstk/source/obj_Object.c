@@ -3,6 +3,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include "dstk/slice.h"
+
 #include "dstk/obj_Object.h"
 
 #define PARENT_CLASS ((void *)&_Obj)
@@ -28,7 +30,7 @@ static void Object_dtor(void *_self) {
             next = pr->next;
 
             ad_del(pr->data, pr->datasize);
-            free(pr);
+            slice_free(sizeof(struct prop), pr);
 
             pr = next;
         }
@@ -44,7 +46,7 @@ static void Object_dtor(void *_self) {
                 free(s->handlers);
                 free(s->userdata);
             }
-            free(s);
+            slice_free(sizeof(struct sig), s);
 
             s = next;
         }
@@ -204,14 +206,14 @@ void obj_setprop(void *_self, unsigned pid, void *data, unsigned datasize) {
         if(pr)
             ad_del(pr->data, pr->datasize);
         else {
-            pr = self->p_last->next = calloc(1, sizeof(struct prop));
+            pr = self->p_last->next = slice_alloc0(sizeof(struct prop));
             assert(pr);
             self->p_last = self->p_last->next;
             self->p_count++;
         }
     }
     else {
-        pr = self->p_first = self->p_last = calloc(1, sizeof(struct prop));
+        pr = self->p_first = self->p_last = slice_alloc0(sizeof(struct prop));
         assert(pr);
         self->p_count++;
     }
@@ -277,7 +279,7 @@ void obj_delprop(void *_self, unsigned pid) {
         prev->next = pr->next;
 
     ad_del(pr->data, pr->datasize);
-    free(pr);
+    slice_free(sizeof(struct prop), pr);
 
     self->p_count--;
 }
@@ -299,14 +301,14 @@ void obj_sigconnect(void *_self, unsigned sid, Obj_CB cb, void *userdata) {
         }
 
         if(!s) {
-            s = self->s_last->next = calloc(1, sizeof(struct sig));
+            s = self->s_last->next = slice_alloc0(sizeof(struct sig));
             assert(s);
             self->s_last = self->s_last->next;
             self->s_count++;
         }
     }
     else {
-        s = self->s_first = self->s_last = calloc(1, sizeof(struct sig));
+        s = self->s_first = self->s_last = slice_alloc0(sizeof(struct sig));
         assert(s);
         self->s_count++;
     }
@@ -390,7 +392,7 @@ void obj_sigdisconnect(void *_self, unsigned sid, void *cb) {
         free(s->handlers);
         free(s->userdata);
     }
-    free(s);
+    slice_free(sizeof(struct sig), s);
 
     self->s_count--;
 }
