@@ -95,6 +95,58 @@ void bench0(FILE *flog) {
         _bench0(i, NUM, flog);
 }
 
+#define NUM 1000
+#define NBCLONES 30
+void _bench1(int len, FILE *flog) {
+    int i, j;
+    unsigned long time;
+    void *data = malloc(len);
+    if(!data)
+        return;
+
+    struct Data *txt = obj_new(Data, len, data);
+
+    struct Data *clones[NBCLONES];
+
+    PROF_START();
+    for(i=0; i<NUM; i++) {
+        for(j=0; j<NBCLONES; j++)
+            clones[j] = obj_clone(txt);
+
+        for(j=0; j<NBCLONES; j++)
+            obj_delete(clones[j]);
+    }
+    PROF_END(time);
+
+    obj_delete(txt);
+
+    printf("%04d %09d %04.3f\n", len, time, (float)time/(float)NUM);
+
+    if(flog)
+        fprintf(flog, "%04d,%06d,%02d,%09d,%04.3f\n", len, NUM, NBCLONES, time, (float)time/(float)NUM);
+
+    free(data);
+}
+
+void bench1(FILE *flog) {
+    int i;
+
+    printf("Benchmark1:\n");
+    printf("NUM=%d; NBCLONES=%d\n", NUM, NBCLONES);
+    printf("len  cycles    cyc/op\n");
+
+    if(flog)
+        fprintf(flog, "\"len\",\"NUM\",\"NBCLONES\",\"cycles\",\"cyc/op\"\n");
+
+    for(i=1; i<10; i+=1)
+        _bench1(i, flog);
+
+    for(i=10; i<=40; i+=10)
+        _bench1(i, flog);
+}
+#undef NUM
+#undef NBCLONES
+
 void slice_test() {
     typedef struct {
         unsigned int f1, f2, f3;
@@ -141,8 +193,9 @@ int main(void) {
 /*    test2();*/
 
 /*    bench0(flog);*/
+    bench1(flog);
 
-    slice_test();
+/*    slice_test();*/
 
     iprintf("ok");
 
