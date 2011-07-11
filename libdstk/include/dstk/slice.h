@@ -14,7 +14,9 @@ void            slice_free      (size_t block_size, void *mem_block);
 
 // ------------ DEBUG ------------
 
-void            slice_dump      (size_t block_size);
+#include <stdio.h>
+
+void            slice_dump      (size_t block_size, FILE *fd);
 
 #endif
 

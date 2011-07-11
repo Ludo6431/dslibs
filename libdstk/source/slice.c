@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <string.h>
 
+#include "dstk/common.h"
+
 #include "dstk/slice.h"
 
 #define MEMALIGN4(n) ((unsigned int)((n) + 3) & ~((unsigned int)3))
@@ -76,7 +78,7 @@ void *slice_alloc(size_t block_size) {
     // there isn't a free block => we add a list with the double of blocks
     tmp->nblists++;
 
-    size_t nbblocks = 4*(1<<(tmp->nblists-1));
+    size_t nbblocks = MIN(4*(1<<(tmp->nblists-1)), 32);
 
     btmp = malloc(sizeof(struct blist) + nbblocks*tmp->block_size);
     if(!btmp)
@@ -136,7 +138,7 @@ void slice_free(size_t block_size, void *mem_block) {
 
 // --------------- DEBUG --------------
 
-void slice_dump(size_t _block_size) {
+void slice_dump(size_t _block_size, FILE *fd) {
     struct sllist *tmp = list;
     struct blist *btmp;
     size_t block_size;
@@ -152,16 +154,16 @@ void slice_dump(size_t _block_size) {
     }
 
     if(!tmp) {
-        iprintf("Unknown block size\n");
+        fprintf(fd, "Unknown block size\n");
         return; // unknown block size
     }
 
-    iprintf("There are %d list(s) of %d(%d)bytes blocks\n", tmp->nblists, block_size, _block_size);
+    fprintf(fd, "There are %d list(s) of %d(%d)bytes blocks\n", tmp->nblists, block_size, _block_size);
 
     for(btmp = tmp->last_list, i = 0; btmp; btmp = btmp->next, i++) {
-        iprintf("list #%d:\n", i+1);
-        iprintf("\t%d blocks\n", btmp->nbblocks);
-        printf("\tfree blocks: %04x\n", btmp->free_mask);
+        fprintf(fd, "list #%d:\n", i+1);
+        fprintf(fd, "\t%d blocks\n", btmp->nbblocks);
+        fprintf(fd, "\tfree blocks: %08x\n", btmp->free_mask);
     }
 }
 
