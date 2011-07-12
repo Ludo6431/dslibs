@@ -86,7 +86,7 @@ void bench0(FILE *flog) {
     printf("len  NUM    cycles    cyc/op\n");
 
     if(flog)
-        fprintf(flog, "\"len\",\"NUM\",\"cycles\",\"cyc/op\"\n");
+        fprintf(flog, "\"Benchmark0\"\n\"len\",\"NUM\",\"cycles\",\"cyc/op\"\n");
 
     for(i=1; i<10; i+=1)
         _bench0(i, NUM, flog);
@@ -96,7 +96,7 @@ void bench0(FILE *flog) {
 }
 
 #define NUM 1000
-#define NBCLONES 30
+#define NBCLONES 27
 void _bench1(int len, FILE *flog) {
     int i, j;
     unsigned long time;
@@ -136,7 +136,7 @@ void bench1(FILE *flog) {
     printf("len  cycles    cyc/op\n");
 
     if(flog)
-        fprintf(flog, "\"len\",\"NUM\",\"NBCLONES\",\"cycles\",\"cyc/op\"\n");
+        fprintf(flog, "\"Benchmark1\"\n\"len\",\"NUM\",\"NBCLONES\",\"cycles\",\"cyc/op\"\n");
 
     for(i=1; i<10; i+=1)
         _bench1(i, flog);
