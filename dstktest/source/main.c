@@ -6,6 +6,8 @@
 
 #include "prof.h"
 
+FILE *flog = NULL;
+
 void test0() {  // first little test
     struct String *o = obj_new(String, "Test0!");
     iprintf("\"%s\"\n", obj_repr(o));
@@ -18,14 +20,14 @@ void test1() {  // properties test
 
     obj_setprop(o, 0, "wtf", 4);
     obj_setprop(o, 1, "wth", 4);
-    obj_setprop(o, 2, "Test1!", 8);
+    obj_setprop(o, 2, "Test1!", 7);
 
     printf("0:%s\n", obj_getprop(o, 0, NULL));
     printf("1:%s\n", obj_getprop(o, 1, NULL));
     printf("2:%s\n", obj_getprop(o, 2, NULL));
 
     obj_setprop(o, 0, "omg", 4);
-    obj_setprop(o, 1, "Test1...", 8);
+    obj_setprop(o, 1, "Test1...", 9);
     obj_setprop(o, 2, "lac", 4);
 
     printf("0:%s\n", obj_getprop(o, 0, NULL));
@@ -53,51 +55,61 @@ void test2() {  // clone test
     malloc_stats();
 }
 
-void _bench0(int len, unsigned int NUM, FILE *flog) {
+#define NUM 100
+void _bench0(int len) {
     int i;
     unsigned long time;
     void *data = malloc(len);
     if(!data)
         return;
 
-    struct Data *txt = obj_new(Data, len, data);
+    struct Data *objs[NUM];
 
-    PROF_START();
-    for(i=0; i<NUM; i++)
-        obj_delete(obj_clone(txt));
-    PROF_END(time);
+    // allocate
+        PROF_START();
+        for(i=0; i<NUM; i++)
+            objs[i] = obj_new(Data, len, data);
+        PROF_END(time);
 
-    obj_delete(txt);
+        printf("create %04d %09d %04.3f\n", len, time, (float)time/(float)NUM);
 
-    printf("%04d %06d %09d %04.3f\n", len, NUM, time, (float)time/(float)NUM);
+        if(flog)
+            fprintf(flog, "\"C\",%04d,%09d,%04.3f\n", len, time, (float)time/(float)NUM);
 
-    if(flog)
-        fprintf(flog, "%04d,%06d,%09d,%04.3f\n", len, NUM, time, (float)time/(float)NUM);
+    // free
+        PROF_START();
+        for(i=0; i<NUM; i++)
+            obj_delete(objs[i]);
+        PROF_END(time);
+
+        printf("delete %04d %09d %04.3f\n", len, time, (float)time/(float)NUM);
+
+        if(flog)
+            fprintf(flog, "\"D\",%04d,%09d,%04.3f\n", len, time, (float)time/(float)NUM);
 
     free(data);
 }
 
-void bench0(FILE *flog) {
+void bench0() {
     int i;
 
-    #define NUM 20000
-
     printf("Benchmark0:\n");
-    printf("len  NUM    cycles    cyc/op\n");
+    printf("op     len  cycles    cyc/op\n");
 
     if(flog)
-        fprintf(flog, "\"Benchmark0\"\n\"len\",\"NUM\",\"cycles\",\"cyc/op\"\n");
+        fprintf(flog, "\"Benchmark0\"\n\"NUM=\",%d\n\"operation\",\"len\",\"cycles\",\"cyc/op\"\n", NUM);
 
     for(i=1; i<10; i+=1)
-        _bench0(i, NUM, flog);
+        _bench0(i);
 
     for(i=10; i<=100; i+=10)
-        _bench0(i, NUM, flog);
+        _bench0(i);
 }
+#undef NUM
 
 #define NUM 1000
 #define NBCLONES 27
-void _bench1(int len, FILE *flog) {
+void _bench1(int len) {
     int i, j;
     unsigned long time;
     void *data = malloc(len);
@@ -114,7 +126,8 @@ void _bench1(int len, FILE *flog) {
             clones[j] = obj_clone(txt);
 
         for(j=0; j<NBCLONES; j++)
-            obj_delete(clones[j]);
+            if(clones[j])
+                obj_delete(clones[j]);
     }
     PROF_END(time);
 
@@ -123,12 +136,12 @@ void _bench1(int len, FILE *flog) {
     printf("%04d %09d %04.3f\n", len, time, (float)time/(float)NUM);
 
     if(flog)
-        fprintf(flog, "%04d,%06d,%02d,%09d,%04.3f\n", len, NUM, NBCLONES, time, (float)time/(float)NUM);
+        fprintf(flog, "%04d,%09d,%04.3f\n", len, time, (float)time/(float)NUM);
 
     free(data);
 }
 
-void bench1(FILE *flog) {
+void bench1() {
     int i;
 
     printf("Benchmark1:\n");
@@ -136,13 +149,13 @@ void bench1(FILE *flog) {
     printf("len  cycles    cyc/op\n");
 
     if(flog)
-        fprintf(flog, "\"Benchmark1\"\n\"len\",\"NUM\",\"NBCLONES\",\"cycles\",\"cyc/op\"\n");
+        fprintf(flog, "\"Benchmark1\"\n\"NUM=\",%d\n\"NBCLONES=\",%d\n\"len\",\"cycles\",\"cyc/op\"\n", NUM, NBCLONES);
 
     for(i=1; i<10; i+=1)
-        _bench1(i, flog);
+        _bench1(i);
 
-    for(i=10; i<=40; i+=10)
-        _bench1(i, flog);
+//    for(i=10; i<=40; i+=10)
+//        _bench1(i);
 }
 #undef NUM
 #undef NBCLONES
@@ -184,7 +197,6 @@ int main(void) {
     defaultExceptionHandler();
     iprintf("Hello World!\n");
 
-    FILE *flog = NULL;
     if(fatInitDefault())
         flog = fopen("/dstktest_log.csv", "ab");
 
@@ -192,8 +204,8 @@ int main(void) {
 /*    test1();*/
 /*    test2();*/
 
-/*    bench0(flog);*/
-    bench1(flog);
+    bench0();
+    bench1();
 
 /*    slice_test();*/
 
