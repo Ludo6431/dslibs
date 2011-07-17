@@ -1,6 +1,7 @@
 #include <nds.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <fat.h>
 #include <dstk.h>
 
@@ -200,6 +201,19 @@ int main(void) {
     if(fatInitDefault())
         flog = fopen("/dstktest_log.csv", "ab");
 
+    if(flog) {
+        time_t result;
+        struct tm *timeptr;
+
+        result = time(NULL);
+        timeptr = localtime(&result);
+
+        fprintf(flog, "\"Log opened - %d/%d/%d %.2d:%.2d:%.2d\"\n",
+            1900 + timeptr->tm_year, 1 + timeptr->tm_mon, timeptr->tm_mday,
+            timeptr->tm_hour, timeptr->tm_min, timeptr->tm_sec
+        );
+    }
+
 /*    test0();*/
 /*    test1();*/
 /*    test2();*/
@@ -209,10 +223,20 @@ int main(void) {
 
 /*    slice_test();*/
 
-    iprintf("ok");
-
-    if(flog)
+    if(flog) {
         fclose(flog);
+
+        time_t result;
+        struct tm *timeptr;
+
+        result = time(NULL);
+        timeptr = localtime(&result);
+
+        fprintf(flog, "\"Log closed - %d/%d/%d %.2d:%.2d:%.2d\"\n",
+            1900 + timeptr->tm_year, 1 + timeptr->tm_mon, timeptr->tm_mday,
+            timeptr->tm_hour, timeptr->tm_min, timeptr->tm_sec
+        );
+    }
 
     while(1)
         swiWaitForVBlank();
