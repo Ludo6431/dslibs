@@ -10,6 +10,7 @@
 #ifndef BIT
 #   define BIT(b) (1<<(b))
 #endif
+
 #define FIRST_NBBLOCKS 4
 #define SIZE_THRESHOLD 64
 
@@ -20,52 +21,29 @@ struct blist {
     unsigned short first_free;
     unsigned int free_mask;
 };  // the data is allocated right after the blocklist in memory, hence the _GET_BLOCK define :
-#define _GET_BLOCK(sizelist, blockslist, i) ((void *)&(  ((char *)(blockslist))[sizeof(struct blist) + (i)*((sizelist)->block_size)]  ))
+#define _GET_BLOCK(blocksize, blockslist, i) ((void *)&(  ((char *)(blockslist))[sizeof(struct blist) + (i)*(blocksize)]  ))
 
 struct sllist {
-    struct sllist *next;
-
-    size_t block_size;
-
     size_t nnbblocks;   // the next number of blocks
     struct blist *last_list;
-};
-
-static struct sllist *list = NULL;
+} list[SIZE_THRESHOLD>>2] = {{0}};
 
 void *slice_alloc(size_t block_size) {
-    struct sllist *tmp = list, *prev = NULL;
+    struct sllist *tmp;
+
+    if(!block_size)
+        return NULL;
 
     block_size = MEMALIGN4(block_size);
 
     if(block_size>SIZE_THRESHOLD)
         return malloc(block_size);
-    while(tmp) {    // search if it already exists
-        if(tmp->block_size == block_size)
-            break;
 
-        prev = tmp;
-        tmp = tmp->next;
-    }
+    // get the right size
+    tmp = &list[(block_size>>2)-1];
 
-    if(tmp) {
-        if(prev) {  // if i'm not already the first blockslist in the list
-            prev->next = tmp->next;
-            tmp->next = list;
-            list = tmp;
-        }
-    }
-    else {  // not existing, prepend new blockslist
-        tmp = calloc(1, sizeof(struct sllist));
-        if(!tmp)
-            return NULL;
-
-        tmp->next = list;
-        list = tmp;
-
+    if(!tmp->nnbblocks)
         tmp->nnbblocks = FIRST_NBBLOCKS; // initial number of blocks
-        tmp->block_size = block_size;
-    }
 
     // ok, we can now find a free bloc in tmp
     unsigned int i;
@@ -77,7 +55,7 @@ void *slice_alloc(size_t block_size) {
             if(! (btmp->free_mask & BIT(i)) ) {    // there is a free block
                 if(!ret) {
                     btmp->free_mask |= BIT(i);
-                    ret = _GET_BLOCK(tmp, btmp, i);
+                    ret = _GET_BLOCK(block_size, btmp, i);
                 }
                 else {
                     btmp->first_free = i;
@@ -91,7 +69,7 @@ void *slice_alloc(size_t block_size) {
     }
 
     // there isn't a free block => we add a list with the double of blocks
-    btmp = malloc(sizeof(struct blist) + tmp->nnbblocks*tmp->block_size);
+    btmp = malloc(sizeof(struct blist) + tmp->nnbblocks*block_size);
     if(!btmp)
         return NULL;
     bzero(btmp, sizeof(struct blist));
@@ -108,46 +86,39 @@ void *slice_alloc(size_t block_size) {
     // use the first block we just allocated
     btmp->free_mask = BIT(0);   // the first block is used
     btmp->first_free = 1;   // the second block is free
-    return _GET_BLOCK(tmp, btmp, 0);
+    return _GET_BLOCK(block_size, btmp, 0);
 }
 
 inline void *slice_alloc0(size_t block_size) {
     void *ret = slice_alloc(block_size);
-    memset(ret, 0, block_size);
+    if(ret)
+        memset(ret, 0, block_size);
     return ret;
 }
 
 inline void *slice_copy(size_t block_size, void *mem_block) {
     void *ret = slice_alloc(block_size);
-    memcpy(ret, mem_block, block_size);
+    if(ret)
+        memcpy(ret, mem_block, block_size);
     return ret;
 }
 
 void slice_free(size_t block_size, void *mem_block) {
-    struct sllist *tmp, *prev = NULL;
+    struct sllist *tmp;
     struct blist *btmp, *bprev = NULL;
 
     block_size = MEMALIGN4(block_size);
 
     if(block_size>SIZE_THRESHOLD)
         free(mem_block);
-    // search the size
-    tmp = list;
-    while(tmp) {    // search if it already exists
-        if(tmp->block_size == block_size)
-            break;
 
-        prev = tmp;
-        tmp = tmp->next;
-    }
-
-    if(!tmp)
-        return; // unknown block size
+    // get the right size
+    tmp = &list[(block_size>>2)-1];
 
     // search the block list
     btmp = tmp->last_list;
     while(btmp) {
-        if(_GET_BLOCK(tmp, btmp, 0) <= mem_block && mem_block <= _GET_BLOCK(tmp, btmp, btmp->nbblocks-1))
+        if(_GET_BLOCK(block_size, btmp, 0) <= mem_block && mem_block <= _GET_BLOCK(block_size, btmp, btmp->nbblocks-1))
             break;
 
         bprev = btmp;
@@ -158,7 +129,7 @@ void slice_free(size_t block_size, void *mem_block) {
         return;
 
     // mark the block as free
-    unsigned int bit = (unsigned int)(mem_block - _GET_BLOCK(tmp, btmp, 0))/tmp->block_size;
+    unsigned int bit = (unsigned int)(mem_block - _GET_BLOCK(block_size, btmp, 0))/block_size;
 
     btmp->free_mask &= ~BIT(bit);
     btmp->first_free = MIN(btmp->first_free, bit);
@@ -170,38 +141,29 @@ void slice_free(size_t block_size, void *mem_block) {
             tmp->last_list = btmp->next;
 
         free(btmp);
-
-        if(!tmp->last_list) {   // it was the last block list of this size
-            if(prev)
-                prev->next = tmp->next;
-            else
-                list = tmp->next;
-
-            free(tmp);
-        }
     }
 }
 
 // --------------- DEBUG --------------
 
 void slice_dump(size_t _block_size, FILE *fd) {
-    struct sllist *tmp = list;
+    struct sllist *tmp;
     struct blist *btmp;
     size_t block_size;
     int i;
 
     block_size = MEMALIGN4(_block_size);
 
-    while(tmp) {    // search if it already exists
-        if(tmp->block_size == block_size)
-            break;
-
-        tmp = tmp->next;
+    if(block_size>SIZE_THRESHOLD) {
+        fprintf(fd, "Size too big\n");
+        return;
     }
 
-    if(!tmp) {
+    tmp = &list[(block_size>>2)-1];
+
+    if(!tmp->last_list) {
         fprintf(fd, "Unknown block size\n");
-        return; // unknown block size
+        return;
     }
 
     fprintf(fd, "List(s) of %d(%d)bytes blocks :\n", block_size, _block_size);
