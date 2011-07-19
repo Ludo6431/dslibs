@@ -155,8 +155,8 @@ void bench1() {
     for(i=1; i<10; i+=1)
         _bench1(i);
 
-//    for(i=10; i<=40; i+=10)
-//        _bench1(i);
+    for(i=10; i<=40; i+=10)
+        _bench1(i);
 }
 #undef NUM
 #undef NBCLONES
@@ -175,7 +175,7 @@ printf("v=%p\n", v);
     v->f2 = 43;
     v->f3 = 51;
 
-#define NB 15
+#define NB 100
     val *w[NB];
     int i;
 
@@ -209,6 +209,7 @@ int main(void) {
         result = time(NULL);
         timeptr = localtime(&result);
 
+        iprintf("Log opened\n");
         fprintf(flog, "\"Log opened - %d/%d/%d %.2d:%.2d:%.2d\"\n",
             1900 + timeptr->tm_year, 1 + timeptr->tm_mon, timeptr->tm_mday,
             timeptr->tm_hour, timeptr->tm_min, timeptr->tm_sec
@@ -222,21 +223,22 @@ int main(void) {
     bench0();
     bench1();
 
-/*    slice_test();*/
+    slice_test();
 
     if(flog) {
-        fclose(flog);
-
         time_t result;
         struct tm *timeptr;
 
         result = time(NULL);
         timeptr = localtime(&result);
 
+        iprintf("Log closed\n");
         fprintf(flog, "\"Log closed - %d/%d/%d %.2d:%.2d:%.2d\"\n",
             1900 + timeptr->tm_year, 1 + timeptr->tm_mon, timeptr->tm_mday,
             timeptr->tm_hour, timeptr->tm_min, timeptr->tm_sec
         );
+
+        fclose(flog);
     }
 
     iprintf("ok");
