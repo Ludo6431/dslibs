@@ -166,7 +166,7 @@ void slice_dump(size_t _block_size, FILE *fd) {
         return;
     }
 
-    fprintf(fd, "List(s) of %d(%d)bytes blocks :\n", block_size, _block_size);
+    fprintf(fd, "List(s) of %d(%d)B blocks (max %d):\n", block_size, _block_size, tmp->nnbblocks);
 
     for(btmp = tmp->last_list, i = 0; btmp; btmp = btmp->next, i++) {
         fprintf(fd, "list #%d:\n", i+1);
@@ -174,4 +174,31 @@ void slice_dump(size_t _block_size, FILE *fd) {
         fprintf(fd, "\tfree blocks: %08x (%u)\n", btmp->free_mask, btmp->first_free);
     }
 }
+
+void slice_dump_all(FILE *fd) {
+    struct sllist *tmp;
+    struct blist *btmp;
+    int i, j, k=0;
+
+    for(j=0; j<SIZE_THRESHOLD>>2; j++) {
+        tmp = &list[j];
+
+        if(!tmp->last_list)
+            continue;
+
+        k = 1;
+
+        fprintf(fd, "List(s) of %dB blocks (max %d):\n", (j+1)<<2, tmp->nnbblocks);
+
+        for(btmp = tmp->last_list, i = 0; btmp; btmp = btmp->next, i++) {
+            fprintf(fd, "list #%d:\n", i+1);
+            fprintf(fd, "\t%d blocks\n", btmp->nbblocks);
+            fprintf(fd, "\tfree blocks: %08x (%u)\n", btmp->free_mask, btmp->first_free);
+        }
+    }
+
+    if(!k)
+        fprintf(fd, "Nothing in slices!\n");
+}
+
 

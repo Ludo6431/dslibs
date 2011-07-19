@@ -35,6 +35,8 @@ void test1() {  // properties test
     printf("1:%s\n", obj_getprop(o, 1, NULL));
     printf("2:%s\n", obj_getprop(o, 2, NULL));
 
+slice_dump_all(stderr);
+
     obj_delete(o);
 
     malloc_stats();
@@ -49,6 +51,8 @@ void test2() {  // clone test
     m = obj_clone(o);
     printf("0:%s\n", obj_getprop(m, 0, NULL));
     printf("%d:%s\n", PROP_DATA, obj_getprop(m, PROP_DATA, NULL));
+
+slice_dump_all(stderr);
 
     obj_delete(o);
     obj_delete(m);
@@ -195,6 +199,7 @@ printf("v=%p\n", v);
 
 int main(void) {
     consoleDemoInit();
+    consoleDebugInit(DebugDevice_NOCASH);   // uses 1032 bytes on the heap
     defaultExceptionHandler();
 
     iprintf("dstktest\n");
@@ -217,13 +222,13 @@ int main(void) {
     }
 
 /*    test0();*/
-/*    test1();*/
-/*    test2();*/
+    test1();
+    test2();
 
-    bench0();
-    bench1();
+/*    bench0();*/
+/*    bench1();*/
 
-    slice_test();
+/*    slice_test();*/
 
     if(flog) {
         time_t result;
