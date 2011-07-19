@@ -10,6 +10,7 @@
 static void *Object_ctor(const void *class, va_list *app) {
     struct Object *new = cOBJ(PARENT_CLASS)->ctor(class, app);
 
+    // init
     new->p_count = 0;
     new->s_count = 0;
 
@@ -57,8 +58,11 @@ static void *Object_clone(const void *_self) {
     struct Object *new = cOBJ(PARENT_CLASS)->clone(_self);
     const struct Object *self = _self;
 
-    // properties
+    // init
     new->p_count = 0;
+    new->s_count = 0;
+
+    // copy properties (but don't copy signals)
     if(self->p_count) {
         struct prop *pr = self->p_first;
         while(pr) {
@@ -67,9 +71,6 @@ static void *Object_clone(const void *_self) {
             pr = pr->next;
         }
     }
-
-    // signals
-    new->s_count = 0;   // don't copy signals handlers
 
     obj_sigemit((void *)_self, SIG_CLONED, new);
 

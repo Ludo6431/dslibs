@@ -10,6 +10,8 @@
 #ifndef BIT
 #   define BIT(b) (1<<(b))
 #endif
+#define FIRST_NBBLOCKS 4
+#define SIZE_THRESHOLD 64
 
 struct blist {
     struct blist *next;
@@ -25,7 +27,7 @@ struct sllist {
 
     size_t block_size;
 
-    size_t nblists;
+    size_t nnbblocks;   // the next number of blocks
     struct blist *last_list;
 };
 
@@ -36,6 +38,8 @@ void *slice_alloc(size_t block_size) {
 
     block_size = MEMALIGN4(block_size);
 
+    if(block_size>SIZE_THRESHOLD)
+        return malloc(block_size);
     while(tmp) {    // search if it already exists
         if(tmp->block_size == block_size)
             break;
@@ -59,6 +63,7 @@ void *slice_alloc(size_t block_size) {
         tmp->next = list;
         list = tmp;
 
+        tmp->nnbblocks = FIRST_NBBLOCKS; // initial number of blocks
         tmp->block_size = block_size;
     }
 
@@ -86,11 +91,7 @@ void *slice_alloc(size_t block_size) {
     }
 
     // there isn't a free block => we add a list with the double of blocks
-    tmp->nblists++;
-
-    size_t nbblocks = MIN(4*(1<<(tmp->nblists-1)), 32);
-
-    btmp = malloc(sizeof(struct blist) + nbblocks*tmp->block_size);
+    btmp = malloc(sizeof(struct blist) + tmp->nnbblocks*tmp->block_size);
     if(!btmp)
         return NULL;
     bzero(btmp, sizeof(struct blist));
@@ -98,11 +99,15 @@ void *slice_alloc(size_t block_size) {
     // (prepend the new blocks list)
     btmp->next = tmp->last_list;
     tmp->last_list = btmp;
-    btmp->nbblocks = nbblocks;
+    btmp->nbblocks = tmp->nnbblocks;
 
-    // use the last block we just allocated
-    btmp->free_mask = 1;
-    btmp->first_free = 1;
+    // increment the next number of blocks
+    if(tmp->nnbblocks<32)
+        tmp->nnbblocks<<=1;
+
+    // use the first block we just allocated
+    btmp->free_mask = BIT(0);   // the first block is used
+    btmp->first_free = 1;   // the second block is free
     return _GET_BLOCK(tmp, btmp, 0);
 }
 
@@ -119,36 +124,62 @@ inline void *slice_copy(size_t block_size, void *mem_block) {
 }
 
 void slice_free(size_t block_size, void *mem_block) {
-    struct sllist *tmp = list;
-    struct blist *btmp;
+    struct sllist *tmp, *prev = NULL;
+    struct blist *btmp, *bprev = NULL;
 
     block_size = MEMALIGN4(block_size);
 
+    if(block_size>SIZE_THRESHOLD)
+        free(mem_block);
+    // search the size
+    tmp = list;
     while(tmp) {    // search if it already exists
         if(tmp->block_size == block_size)
             break;
 
+        prev = tmp;
         tmp = tmp->next;
     }
 
     if(!tmp)
         return; // unknown block size
 
+    // search the block list
     btmp = tmp->last_list;
     while(btmp) {
-        if(_GET_BLOCK(tmp, btmp, 0) <= mem_block && mem_block <= _GET_BLOCK(tmp, btmp, btmp->nbblocks-1)) {
-            unsigned int bit = (unsigned int)(mem_block - _GET_BLOCK(tmp, btmp, 0))/tmp->block_size;
+        if(_GET_BLOCK(tmp, btmp, 0) <= mem_block && mem_block <= _GET_BLOCK(tmp, btmp, btmp->nbblocks-1))
+            break;
 
-            btmp->free_mask &= ~BIT(bit);
-            btmp->first_free = MIN(btmp->first_free, bit);
-
-            return;
-        }
-
+        bprev = btmp;
         btmp = btmp->next;
     }
 
-    // unknown block pointer
+    if(!btmp)   // unknown block pointer
+        return;
+
+    // mark the block as free
+    unsigned int bit = (unsigned int)(mem_block - _GET_BLOCK(tmp, btmp, 0))/tmp->block_size;
+
+    btmp->free_mask &= ~BIT(bit);
+    btmp->first_free = MIN(btmp->first_free, bit);
+
+    if(!btmp->free_mask) {  // the block list is empty, we remove it
+        if(bprev)
+            bprev->next = btmp->next;
+        else
+            tmp->last_list = btmp->next;
+
+        free(btmp);
+
+        if(!tmp->last_list) {   // it was the last block list of this size
+            if(prev)
+                prev->next = tmp->next;
+            else
+                list = tmp->next;
+
+            free(tmp);
+        }
+    }
 }
 
 // --------------- DEBUG --------------
@@ -173,7 +204,7 @@ void slice_dump(size_t _block_size, FILE *fd) {
         return; // unknown block size
     }
 
-    fprintf(fd, "There are %d list(s) of %d(%d)bytes blocks\n", tmp->nblists, block_size, _block_size);
+    fprintf(fd, "List(s) of %d(%d)bytes blocks :\n", block_size, _block_size);
 
     for(btmp = tmp->last_list, i = 0; btmp; btmp = btmp->next, i++) {
         fprintf(fd, "list #%d:\n", i+1);
