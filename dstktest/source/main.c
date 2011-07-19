@@ -196,7 +196,8 @@ printf("v=%p\n", v);
 int main(void) {
     consoleDemoInit();
     defaultExceptionHandler();
-    iprintf("Hello World!\n");
+
+    iprintf("dstktest\n");
 
     if(fatInitDefault())
         flog = fopen("/dstktest_log.csv", "ab");
@@ -237,6 +238,8 @@ int main(void) {
             timeptr->tm_hour, timeptr->tm_min, timeptr->tm_sec
         );
     }
+
+    iprintf("ok");
 
     while(1)
         swiWaitForVBlank();
