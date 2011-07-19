@@ -209,7 +209,7 @@ int main(void) {
         result = time(NULL);
         timeptr = localtime(&result);
 
-        fprintf(flog, "\"Log opened (slice) - %d/%d/%d %.2d:%.2d:%.2d\"\n",
+        fprintf(flog, "\"Log opened - %d/%d/%d %.2d:%.2d:%.2d\"\n",
             1900 + timeptr->tm_year, 1 + timeptr->tm_mon, timeptr->tm_mday,
             timeptr->tm_hour, timeptr->tm_min, timeptr->tm_sec
         );
@@ -233,7 +233,7 @@ int main(void) {
         result = time(NULL);
         timeptr = localtime(&result);
 
-        fprintf(flog, "\"Log closed (slice) - %d/%d/%d %.2d:%.2d:%.2d\"\n",
+        fprintf(flog, "\"Log closed - %d/%d/%d %.2d:%.2d:%.2d\"\n",
             1900 + timeptr->tm_year, 1 + timeptr->tm_mon, timeptr->tm_mday,
             timeptr->tm_hour, timeptr->tm_min, timeptr->tm_sec
         );
