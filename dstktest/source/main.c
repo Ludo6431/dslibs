@@ -197,6 +197,42 @@ printf("v=%p\n", v);
         slice_delete(val, w[i]);
 }
 
+void dlist_test() {
+    DList *list = NULL, *el;
+    int i;
+
+    // allocate a list
+    for(i=0; i<30; i++)
+        list = dlist_prepend(list, (void *)i);
+
+    fprintf(flog, "first dump\n");
+    slice_dump_all(flog);
+    dlist_dump(list, flog);
+
+    // remove some elements
+    el = dlist_nth(list, 0);
+    list = dlist_drop(list, el);
+    dlist_free(el);
+
+    el = dlist_nth(list, 4);
+    list = dlist_drop(list, el);
+    dlist_free(el);
+
+    el = dlist_nth(list, dlist_length(list)-1);
+    list = dlist_drop(list, el);
+    dlist_free(el);
+
+    fprintf(flog, "second dump\n");
+    slice_dump_all(flog);
+    dlist_dump(list, flog);
+
+    // free all the elements
+    list = dlist_free_all(list);
+
+    fprintf(flog, "third dump\n");
+    slice_dump_all(flog);
+}
+
 int main(void) {
     consoleDemoInit();
     consoleDebugInit(DebugDevice_NOCASH);   // uses 1032 bytes on the heap
@@ -222,13 +258,14 @@ int main(void) {
     }
 
 /*    test0();*/
-    test1();
-    test2();
+/*    test1();*/
+/*    test2();*/
 
 /*    bench0();*/
 /*    bench1();*/
 
 /*    slice_test();*/
+    dlist_test();
 
     if(flog) {
         time_t result;

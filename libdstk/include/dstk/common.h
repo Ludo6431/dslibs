@@ -1,6 +1,8 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 
+#include <dstk/types.h>
+
 #ifndef MIN
 #   define MIN(a, b) ((a) > (b) ? (b) : (a))
 #endif
