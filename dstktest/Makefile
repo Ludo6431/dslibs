@@ -16,7 +16,9 @@ include $(DEVKITARM)/ds_rules
 # DATA is a list of directories containing binary files embedded using bin2o
 # GRAPHICS is a list of directories containing image files to be converted with grit
 #---------------------------------------------------------------------------------
-TARGET		:=	$(shell basename $(CURDIR))
+BRANCHNAME = $(shell git branch | grep '^*' | awk '{print $$2}')
+
+TARGET		:=	$(shell basename $(CURDIR))-$(BRANCHNAME)
 BUILD		:=	build
 SOURCES		:=	source
 INCLUDES	:=	include
@@ -33,7 +35,7 @@ CFLAGS	:=	-g -Wall -Wno-format -O2\
 		-ffast-math \
 		$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -DARM9
+CFLAGS	+=	$(INCLUDE) -DARM9 -DBRANCHNAME=\"$(BRANCHNAME)\"
 CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH)
