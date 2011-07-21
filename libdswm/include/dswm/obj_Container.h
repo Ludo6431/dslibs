@@ -1,7 +1,7 @@
 #ifndef _OBJ_CONTAINER_H
 #define _OBJ_CONTAINER_H
 
-#include "dswm/obj_Widget.h"
+#include <dswm/obj_Widget.h>
 
 struct list {
     void *data;

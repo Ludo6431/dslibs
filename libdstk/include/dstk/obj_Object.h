@@ -3,10 +3,10 @@
 
 #include <stdarg.h>
 
-#include "dstk/signals.h"
-#include "dstk/adata.h"
+#include <dstk/signals.h>
+#include <dstk/adata.h>
 
-#include "dstk/obj.h"
+#include <dstk/obj.h>
 
 struct prop {
     unsigned pid;

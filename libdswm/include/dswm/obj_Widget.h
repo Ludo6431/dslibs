@@ -1,7 +1,7 @@
 #ifndef _OBJ_WIDGET_H
 #define _OBJ_WIDGET_H
 
-#include "dstk/obj_Object.h"
+#include <dstk/obj_Object.h>
 
 struct Widget {
     struct Object _;

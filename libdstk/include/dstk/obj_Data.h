@@ -1,7 +1,7 @@
 #ifndef _OBJ_DATA_H
 #define _OBJ_DATA_H
 
-#include "dstk/obj_Object.h"
+#include <dstk/obj_Object.h>
 
 struct Data {
     struct Object _;

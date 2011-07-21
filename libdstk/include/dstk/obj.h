@@ -3,7 +3,7 @@
 
 #include <stdarg.h>
 
-#include "dstk/common.h"
+#include <dstk/common.h>
 
 struct Obj {
     const void *class;
