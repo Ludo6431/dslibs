@@ -3,6 +3,8 @@
 #include <stdarg.h>
 #include <string.h>
 
+#include <dstk.h>
+
 #include "dswm/obj_Container.h"
 
 #define PARENT_CLASS ((void *)&_Widget)
@@ -30,7 +32,7 @@ static void Container_dtor(void *_self) {
 
         O_REFCNT(tmp->data)--;
         obj_delete(tmp->data);
-        free(tmp);
+        slice_delete(struct list, tmp);
 
         self->count--;
         tmp = next;
@@ -86,7 +88,7 @@ static void *Container_add(void *_self, void *element) {
 
     O_REFCNT(element)++;
 
-    struct list *new = (struct list *)malloc(sizeof(struct list));
+    struct list *new = slice_new(struct list);
     assert(new);
     new->data = element;
     new->next = NULL;
@@ -142,7 +144,7 @@ static void *Container_drop(void *_self, void *element) {
         self->last = prev;
     if(prev)
         prev->next = curr->next;
-    free(curr);
+    slice_delete(struct list, curr);
     self->count--;
 
     O_REFCNT(element)--;
