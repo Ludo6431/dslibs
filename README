@@ -4,6 +4,7 @@ This is a set of tools and libraries for homebrew coding on DS.
 Libraries:
     * libdstk -- DS Tool Kit
         - objects for C (with properties, signals, ...)
+        - data management (dlist, slist, adata, ...)
         - utf8
         - ...
 
@@ -26,8 +27,8 @@ Tools:
 
 Examples:
     * dfttest -- DS Font Test
-        - renders text in 3D using libdstk, libdsdual and libdft
+        - renders some text in 3D using libdstk, libdsdual and libdft
 
-    * dstktest -- DS Tool Kit Test [WIP]
-        - tests the object system
+    * dstktest -- DS Tool Kit Test
+        - tests the different features of libdstk
 
