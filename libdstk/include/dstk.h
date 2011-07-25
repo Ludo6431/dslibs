@@ -19,6 +19,7 @@
 #include <dstk/adata.h> // abstract data
 #include <dstk/slice.h> // slice
 #include <dstk/dlist.h> // doubly-linked list
+#include <dstk/slist.h> // singly-linked list
 
 // ...
 

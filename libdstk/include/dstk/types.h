@@ -3,7 +3,7 @@
 
 typedef int (*TKCompareFunc)(void *dataA, void *dataB);
 
-typedef void (*TKFunc)(void *data, void *user_data);
+typedef void *(*TKFunc)(void *data, void *user_data);
 
 #endif
 

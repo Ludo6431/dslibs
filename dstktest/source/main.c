@@ -198,16 +198,16 @@ printf("v=%p\n", v);
 }
 
 void dlist_test() {
-    DList *list = NULL, *el;
+    DList *list = NULL, *el, *list2;
     int i;
 
     // allocate a list
     for(i=0; i<30; i++)
         list = dlist_prepend(list, (void *)i);
 
-    fprintf(flog, "first dump\n");
-    slice_dump_all(flog);
-    dlist_dump(list, flog);
+fprintf(flog, "first dump\n");
+slice_dump_all(flog);
+dlist_dump(list, flog);
 
     // remove some elements
     el = dlist_nth(list, 0);
@@ -222,15 +222,94 @@ void dlist_test() {
     list = dlist_drop(list, el);
     dlist_free(el);
 
-    fprintf(flog, "second dump\n");
-    slice_dump_all(flog);
-    dlist_dump(list, flog);
+fprintf(flog, "second dump\n");
+slice_dump_all(flog);
+dlist_dump(list, flog);
 
-    // free all the elements
+    // copy the list
+    list2 = dlist_copy(list);
+
+fprintf(flog, "third dump\n");
+slice_dump_all(flog);
+dlist_dump(list2, flog);
+
+    // free all the elements of the first list
     list = dlist_free_all(list);
 
-    fprintf(flog, "third dump\n");
-    slice_dump_all(flog);
+fprintf(flog, "fourth dump\n");
+slice_dump_all(flog);
+
+    // free all the elements of the second list
+    list2 = dlist_free_all(list2);
+
+fprintf(flog, "fifth dump\n");
+slice_dump_all(flog);
+}
+
+void slist_test() {
+    typedef struct MyList MyList;
+    struct MyList {
+        MyList *next;   // you need 'next' in the first place
+        // SList _;     // or like that
+
+        unsigned int num;
+    };
+
+    MyList *list = NULL, *el, *elprev, *list2;
+    int i;
+
+    // allocate a list
+    for(i=0; i<30; i++) {
+        el = slist_new(MyList);
+        el->num = i;
+        list = slist_prepend(list, el);
+    }
+
+fprintf(flog, "first dump\n");
+slice_dump_all(flog);
+slist_dump(list, flog);
+
+    // remove some elements
+    el = slist_nth(list, 0);
+    list = slist_drop_next(list, NULL); // remove the first element
+    slist_free(el);
+
+    elprev = slist_nth(list, 4-1);
+    el = elprev->next;
+    list = slist_drop_next(list, elprev);   // remove the 5th element
+    slist_free(el);
+
+    el = slist_nth(list, 6);
+    list = slist_drop(list, el);   // remove the 7th element
+    slist_free(el);
+
+    elprev = slist_nth(list, slist_length(list)-1-1);
+    el = elprev->next;
+    list = slist_drop_next(list, elprev);   // remove the last element
+    slist_free(el);
+
+fprintf(flog, "second dump\n");
+slice_dump_all(flog);
+slist_dump(list, flog);
+
+    // copy the list
+    list2 = slist_copy(list);
+
+fprintf(flog, "third dump\n");
+slice_dump_all(flog);
+slist_dump(list2, flog);
+
+    // free all the elements of the first list
+    list = slist_free_all(list);
+
+fprintf(flog, "fourth dump\n");
+slice_dump_all(flog);
+
+    // free all the elements of the second list
+    list2 = slist_free_all(list2);
+
+fprintf(flog, "fifth dump\n");
+slice_dump_all(flog);
 }
 
 int main(void) {
@@ -265,7 +344,8 @@ int main(void) {
 /*    bench1();*/
 
 /*    slice_test();*/
-    dlist_test();
+/*    dlist_test();*/
+    slist_test();
 
     if(flog) {
         time_t result;

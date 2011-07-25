@@ -37,8 +37,6 @@ DList *dlist_prepend(DList *list, void *data) {
     return _list;
 }
 
-// TODO: DList *         dlist_insert_sorted (DList *list, void *data, TKCompareFunc func);
-
 unsigned int dlist_length(DList *list) {
     unsigned int length = 0;
 
@@ -102,23 +100,29 @@ DList *dlist_find_custom(DList *list, void *data, TKCompareFunc func) {
 DList *dlist_copy(DList *list) {
     DList *_list, *ret = NULL;
 
-    if(list) {
-        ret = _list = slice_new0(DList);
-        _list->data = list->data;
-        list = list->next;
-    }
+    if(!list)
+        return NULL;
+
+    ret = _list = slice_new(DList);
+    _list->prev = NULL;
+    _list->data = list->data;
+    list = list->next;
 
     while(list) {
-        _list->next = slice_new0(DList);
+        _list->next = slice_new(DList);
+        _list->next->prev = _list;
         _list->next->data = list->data;
 
         _list = _list->next;
         list = list->next;
     }
 
+    _list->next = NULL;
+
     return ret;
 }
 
+// TODO: DList *         dlist_insert_sorted (DList *list, void *data, TKCompareFunc func);
 // TODO: DList *         dlist_reverse       (DList *list);
 // TODO: DList *         dlist_sort          (DList *list, TKCompareFunc func);
 

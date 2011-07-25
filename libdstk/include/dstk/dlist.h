@@ -14,7 +14,6 @@ struct DList {
 inline DList *  dlist_alloc         (void *data);
 DList *         dlist_append        (DList *list, void *data);
 DList *         dlist_prepend       (DList *list, void *data);
-// TODO: DList *         dlist_insert_sorted (DList *list, void *data, TKCompareFunc func);
 unsigned int    dlist_length        (DList *list);
 DList *         dlist_first         (DList *list);
 DList *         dlist_last          (DList *list);
@@ -22,6 +21,7 @@ DList *         dlist_nth           (DList *list, unsigned int n);
 DList *         dlist_find          (DList *list, void *data);
 DList *         dlist_find_custom   (DList *list, void *data, TKCompareFunc func);
 DList *         dlist_copy          (DList *list);
+// TODO: DList *         dlist_insert_sorted (DList *list, void *data, TKCompareFunc func);
 // TODO: DList *         dlist_reverse       (DList *list);
 // TODO: DList *         dlist_sort          (DList *list, TKCompareFunc func);
 void            dlist_foreach       (DList *list, TKFunc func, void *user_data);
