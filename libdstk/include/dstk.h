@@ -20,6 +20,7 @@
 #include <dstk/slice.h> // slice
 #include <dstk/dlist.h> // doubly-linked list
 #include <dstk/gslist.h> // generic singly-linked list
+#include <dstk/slist.h> // singly-linked list
 
 // ...
 

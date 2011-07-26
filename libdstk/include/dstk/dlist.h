@@ -5,10 +5,11 @@
 
 typedef struct DList DList;
 struct DList {
-    void *data;
-
-    DList *next;
     DList *prev;
+    DList *next;
+    // ----------
+
+    void *data;
 };
 
 inline DList *  dlist_alloc         (void *data);
