@@ -62,8 +62,10 @@ SList *slist_copy(SList *list) {
 // TODO: SList *         slist_sort          (SList *list, TKCompareFunc func);
 
 inline void slist_foreach(SList *list, TKFunc func, void *user_data) {
-    inline void mfunc(SList *l, void *user_data) {
+    inline SList *mfunc(SList *l, void *user_data) {
         func(l->data, user_data);
+
+        return l->next;
     }
 
     return gslist_foreach(list, (TKFunc)mfunc, user_data);
