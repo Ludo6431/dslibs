@@ -4,3 +4,4 @@ other
 tmp
 *.dft
 
+/Debug
