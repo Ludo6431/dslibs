@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
     char *      ifname = NULL;      // input filename
     char *      ofname = NULL;      // output filename
     unsigned    ofntsize = 10;      // output font size
-    char *      ofmtstr = "A5I3";    // format string
+    char *      ofmtstr = "A5I3";   // format string
     unsigned    ofmtdesc = DFT_TEX_FMT_A5I3;
 
     sSelection selects[MAX_SELECTS];
@@ -36,12 +36,12 @@ int main(int argc, char *argv[]) {
 
     // parse arguments
     static struct option long_options[] = {             // argument following (if any)
-        {"verbose",             no_argument,       0, 'v'}, // 
+        {"verbose",             no_argument,       0, 'v'}, //
         {"input-file",          required_argument, 0, 'i'}, // filename
         {"output-file",         required_argument, 0, 'o'}, // filename
         {"dump-file-prefix",    required_argument, 0, 'd'}, // filename prefix
         {"texture-format",      required_argument, 0, 'f'}, // texture format
-        {"palette-first-trans", no_argument,       0, 't'}, // 
+        {"palette-first-trans", no_argument,       0, 't'}, //
         {"font-size",           required_argument, 0, 's'}, // integer (in pixels)
         {"select",              required_argument, 0, 'l'}, // couple of hex integers 0x#:0x# (one of the two maybe omitted)
         {0, 0, 0, 0}

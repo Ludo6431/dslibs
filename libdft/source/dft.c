@@ -405,8 +405,7 @@ void dft_cleanup(sDFT_RANGES *ranges, sDFT_MAP *map, sDFT_TEXTURE *tex, sDFT_PAL
     if(ranges) free(ranges);
     if(map) free(map);
     if(tex) free(tex);
-    if(pal) free(pal);    
+    if(pal) free(pal);
 }
 
 #endif
-

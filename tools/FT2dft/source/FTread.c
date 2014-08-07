@@ -94,7 +94,7 @@ if(face->num_fixed_sizes) {
         glyphindex;
         charcode = FT_Get_Next_Char(face, charcode, &glyphindex)
     ) {
-        if(selects && num_selects  && !sel_contains(selects, num_selects, charcode))
+        if(selects && num_selects && !sel_contains(selects, num_selects, charcode))
             continue;
 
         if(ranges) {    // detect jumps
