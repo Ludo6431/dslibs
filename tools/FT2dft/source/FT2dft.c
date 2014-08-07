@@ -22,6 +22,7 @@ int main(int argc, char *argv[]) {
     unsigned    ofntsize = 10;      // output font size
     char *      ofmtstr = "A5I3";   // format string
     unsigned    ofmtdesc = DFT_TEX_FMT_A5I3;
+    int         monochrome = 0;     // monochrome rendering of the font
 
     sSelection selects[MAX_SELECTS];
     int num_selects = 0;
@@ -41,16 +42,16 @@ int main(int argc, char *argv[]) {
         {"output-file",         required_argument, 0, 'o'}, // filename
         {"dump-file-prefix",    required_argument, 0, 'd'}, // filename prefix
         {"texture-format",      required_argument, 0, 'f'}, // texture format
+        {"monochrome",          no_argument,       0, 'm'}, // monochrome rendering
         {"palette-first-trans", no_argument,       0, 't'}, //
         {"font-size",           required_argument, 0, 's'}, // integer (in pixels)
         {"select",              required_argument, 0, 'l'}, // couple of hex integers 0x#:0x# (one of the two maybe omitted)
         {0, 0, 0, 0}
     };
     // TODO : color selection of BG and FG of each face (remove palette-first-trans and replace it with FG=trans)
-    // TODO : monochrome ?
     // TODO : usage
     char options_desc[] =
-        "vi:o:d:f:ts:l:";
+        "vi:o:d:f:mts:l:";
     int option_index;
     int c;
     while(1) {
@@ -93,6 +94,9 @@ int main(int argc, char *argv[]) {
             ofmtdesc |= fmt;
 
             break;
+        case 'm':
+            monochrome = 1;
+            break;
         case 't':
             ofmtdesc |= DFT_TEX_PAL1TRANS;
             break;
@@ -124,6 +128,7 @@ int main(int argc, char *argv[]) {
     printf("Input FreeType font     : %s\n", ifname);
     printf("Output dft font         : %s\n", ofname);
     printf("Output texture format   : %s (%04x)\n", ofmtstr, ofmtdesc);
+    printf("Output rendering type   : %s\n", monochrome ? "monochrome" : "grayscale");
     printf("Output font size        : %d\n", ofntsize);
     if(num_selects) {
         printf("Convert only this subset of the font :\n");
@@ -134,7 +139,7 @@ int main(int argc, char *argv[]) {
         printf("Convert the entire font\n");
 
     // read the font and fill glyphs, ranges and bmpsurface
-    FTread(ifname, ofntsize, selects, num_selects, &glyphs, &ranges, &bmpsurface);
+    FTread(ifname, ofntsize, monochrome, selects, num_selects, &glyphs, &ranges, &bmpsurface);
 
     bmpavesize = sqrt((float)bmpsurface);
     bmpfixedwidth = (int)pow(2, ceil(log(bmpavesize)/log(2)));  // the next 2^k

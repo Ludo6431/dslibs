@@ -40,14 +40,15 @@ void print_glyph(FT_GlyphSlot glyph, FT_Bitmap *bmp) {
     }
 }
 
-void FTread(char *ifname, unsigned ofntsize, sSelection *selects, unsigned num_selects, sList *glyphs, sList *ranges, unsigned *_bmpsurface) {
-    FT_Library  library;
-    FT_Error    error;
-    FT_Face     face;
-    FT_ULong    charcode;
-    FT_UInt     glyphindex;
-    FT_Bitmap   bmp;
-    unsigned bmpsurface = 0;
+void FTread(char *ifname, unsigned ofntsize, int monochrome, sSelection *selects, unsigned num_selects, sList *glyphs, sList *ranges, unsigned *_bmpsurface) {
+    FT_Library      library;
+    FT_Error        error;
+    FT_Face         face;
+    FT_ULong        charcode;
+    FT_UInt         glyphindex;
+    FT_Bitmap       bmp;
+    FT_Render_Mode  rendermode = monochrome ? FT_RENDER_MODE_MONO : FT_RENDER_MODE_NORMAL;
+    unsigned        bmpsurface = 0;
 
     assert(ifname);
     assert(glyphs);
@@ -112,7 +113,7 @@ if(face->num_fixed_sizes) {
         if(error) mexit(1, "ERR: FT_Load_Glyph(face, %X, ...) failed !", glyphindex);
 
         // render glyph to bitmap
-        error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+        error = FT_Render_Glyph(face->glyph, rendermode);
         if(error) mexit(1, "ERR: FT_Render_Glyph(face->glyph, ...) failed !");
 
         // convert to 8bpp

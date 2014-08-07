@@ -4,7 +4,7 @@
 #include "list.h"
 #include "selections.h"
 
-void FTread(char *ifname, unsigned ofntsize, sSelection *selects, unsigned num_selects, sList *glyphs, sList *ranges, unsigned *_bmpsurface);
+void FTread(char *ifname, unsigned ofntsize, int monochrome, sSelection *selects, unsigned num_selects, sList *glyphs, sList *ranges, unsigned *_bmpsurface);
 
 #endif
 
