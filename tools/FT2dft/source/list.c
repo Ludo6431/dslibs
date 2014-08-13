@@ -77,6 +77,35 @@ void *L_insert_after_el(sList *list, sLEl *element, void *data) {
     return data;
 }
 
+int L_fsck(sList *list) {
+    unsigned count;
+    sLEl *curr, *prev;
+
+    assert(list);
+
+    if(list->count) {
+        if(!list->head || !list->tail) {
+            return -1;
+        }
+
+        for(count = 0, prev = NULL, curr = list->head; curr; count++, prev = curr, curr = curr->next) {
+            if(prev != curr->prev) {
+                return -2;
+            }
+        }
+
+        if(prev != list->tail) {
+            return -3;
+        }
+
+        if(list->count != count) {
+            return -4;
+        }
+    }
+
+    return 0;
+}
+
 void L_foreach(sList *list, datahandler hnd) {
     assert(list);
     assert(hnd);

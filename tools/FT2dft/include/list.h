@@ -25,6 +25,7 @@ inline sLEl *   L_new_el            (void *data);
 void *          L_add_head          (sList *list, void *data);
 void *          L_add_tail          (sList *list, void *data);
 void *          L_insert_after_el   (sList *list, sLEl *element, void *data);
+int             L_fsck              (sList *list);
 void            L_foreach           (sList *list, datahandler hnd);
 void            L_copy              (sList *dst, sList *src, unsigned datasize);
 void            L_sort              (sList *list, cmphandler hnd);
