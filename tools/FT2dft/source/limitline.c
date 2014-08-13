@@ -75,43 +75,28 @@ sLEl *lim_get_max_el(sList *limit) {
     return elmax;
 }
 
-void lim_addglyph_left(sList *limit, sLEl **curlim, sDFT_GLYPH *glyph) {
-    assert(limit); assert(*curlim); assert(glyph);
-
-    int groupl = 0, groupr = 0;
-
-    sLEl *prev = (*curlim)->prev;
+void lim_addglyph_left(sList *limit, sLEl *curlim, sDFT_GLYPH *glyph) {
+    assert(limit); assert(curlim); assert(glyph);
 
     sLimit *lim = NEW(sLimit);
-    lim->start = SLIMIT(*curlim)->start;
+    lim->start = SLIMIT(curlim)->start;
     lim->end = lim->start + glyph->props.w - 1;
-    lim->height = SLIMIT(*curlim)->height + glyph->props.h;
+    lim->height = SLIMIT(curlim)->height + glyph->props.h;
 
-    L_insert_after_el(limit, (*curlim)->prev, lim);
+    L_insert_after_el(limit, curlim->prev, lim);
 
-    SLIMIT(*curlim)->start += glyph->props.w;
-
-    lim_group(limit);
-
-    *curlim = prev?prev->next->next:limit->head->next;
+    SLIMIT(curlim)->start += glyph->props.w;
 }
 
-void lim_addglyph_right(sList *limit, sLEl **curlim, sDFT_GLYPH *glyph) {
-    assert(limit); assert(*curlim); assert(glyph);
-
-    int groupl = 0, groupr = 0;
+void lim_addglyph_right(sList *limit, sLEl *curlim, sDFT_GLYPH *glyph) {
+    assert(limit); assert(curlim); assert(glyph);
 
     sLimit *lim = NEW(sLimit);
-    lim->start = SLIMIT(*curlim)->end - glyph->props.w + 1;
-    lim->end = SLIMIT(*curlim)->end;
-    lim->height = SLIMIT(*curlim)->height + glyph->props.h;
+    lim->start = SLIMIT(curlim)->end - glyph->props.w + 1;
+    lim->end = SLIMIT(curlim)->end;
+    lim->height = SLIMIT(curlim)->height + glyph->props.h;
 
-    L_insert_after_el(limit, *curlim, lim);
+    L_insert_after_el(limit, curlim, lim);
 
-    SLIMIT(*curlim)->end -= glyph->props.w;
-
-    lim_group(limit);
-
-    *curlim = (*curlim)->next;
+    SLIMIT(curlim)->end -= glyph->props.w;
 }
-

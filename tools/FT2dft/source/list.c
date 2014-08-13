@@ -73,7 +73,7 @@ void *L_insert_after_el(sList *list, sLEl *element, void *data) {
     element->next = el;
 
     list->count++;
-    
+
     return data;
 }
 

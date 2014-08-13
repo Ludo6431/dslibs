@@ -19,8 +19,8 @@ void    lim_print           (sList *limit, char *header);
 void    lim_group           (sList *limit);
 sLEl *  lim_get_min_el      (sList *limit);
 sLEl *  lim_get_max_el      (sList *limit);
-void    lim_addglyph_left   (sList *limit, sLEl **curlim, sDFT_GLYPH *glyph);
-void    lim_addglyph_right  (sList *limit, sLEl **curlim, sDFT_GLYPH *glyph);
+void    lim_addglyph_left   (sList *limit, sLEl *curlim, sDFT_GLYPH *glyph);
+void    lim_addglyph_right  (sList *limit, sLEl *curlim, sDFT_GLYPH *glyph);
 
 #endif
 

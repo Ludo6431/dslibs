@@ -43,7 +43,7 @@ u16 dft_crc(char *data, unsigned size) {
 
     #define CRCSEED 0xFFFF
 
-    assert(!((unsigned)data&0x1));    // 2 bytes aligned
+    assert(!((unsigned long)data&0x1));    // 2 bytes aligned
     assert(!(size&0x1));    // 2 bytes aligned
 
 #ifdef ARM9
@@ -298,6 +298,7 @@ for(i=0; i<w*h*3; i+=3)
     switch(format&DFT_TEX_FMTMASK) {
     case DFT_TEX_FMT_A3I5:
         carmask = 0xE0;
+        /* no break */
     case DFT_TEX_FMT_A5I3:
         if(!carmask) carmask = 0xF8;
 
@@ -381,7 +382,7 @@ void dft_write(char *ofname, sDFT_RANGES *ranges, sDFT_MAP *map, sDFT_TEXTURE *t
     RESET(&eof, sDFT_EOF);
     eof.magic = DFT_EOF_MAGIC;
     {   // calculate crc
-        char *data = (char *)malloc(size);
+        char *data = (char *)calloc(size, 1);
         if(!data) mexit(1, "ERR: not enough memory");
         fseek(ofd, 0, SEEK_SET);
         fread(data, 1, size, ofd);

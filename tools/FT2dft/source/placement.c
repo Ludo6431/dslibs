@@ -53,7 +53,7 @@ sLEl *chooseglyph(sList *list, unsigned dh_l, unsigned dw, unsigned dh_r, int *p
 }
 
 void genplacement(sList *glyphs, unsigned width, unsigned *height) {
-    sLEl *curr, *next;
+    sLEl *curr;
     sList glcopy;
     RESET(&glcopy, sList);
 
@@ -89,9 +89,9 @@ void genplacement(sList *glyphs, unsigned width, unsigned *height) {
     L_add_tail(&limit, lim);
 
     // let's go, optimize the texture !
-    unsigned dh_l, dh_r, dw, u, v;
+    unsigned dh_l, dh_r, dw;
     int place = 0;
-    sLEl *curlim, *nextlim;
+    sLEl *curlim;
     do {
 if(verbose>1) {
 lim_print(&limit, "glob");
@@ -155,14 +155,17 @@ printf("glyph : %08x (%dx%d)\n", SGLYPH(curr)->ccode,SGLYPH(curr)->props.w, SGLY
             gl->props.u = SLIMIT(curlim)->start;
             gl->props.v = SLIMIT(curlim)->height;
 
-            lim_addglyph_left(&limit, &curlim, gl);
+            lim_addglyph_left(&limit, curlim, gl);
         }
         else {
             gl->props.u = SLIMIT(curlim)->end - gl->props.w + 1;
             gl->props.v = SLIMIT(curlim)->height;
 
-            lim_addglyph_right(&limit, &curlim, gl);
+            lim_addglyph_right(&limit, curlim, gl);
         }
+
+        // simplify the limit
+        lim_group(&limit);
 
     } while(glcopy.count);
 if(verbose)

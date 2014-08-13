@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <assert.h>
+#include <unistd.h>
 
 typedef unsigned char u8;
 typedef unsigned short u16;
@@ -71,7 +72,7 @@ void bmpsave(const char* filename, char *data, unsigned w, unsigned h) {
     write32(&infoheader->ncolours, 0);
 
     unsigned x, y;
-    char *p = &temp[sizeof(INFOHEADER)+sizeof(HEADER)];
+    u8 *p = &temp[sizeof(INFOHEADER)+sizeof(HEADER)];
     for(y = 0; y<h; y++) {
         for(x = 0; x<w; x++) {
             *p++ = data[(w*(h - y - 1) + x)*3 + 2]; // B

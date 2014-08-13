@@ -4,12 +4,14 @@
 #include <string.h>
 #include <getopt.h>
 #include <math.h>
+#include <malloc.h>
 
 #include "tools.h"
 #include "selections.h"
 #include "limitline.h"
 #include "FTread.h"
 #include "dump.h"
+#include "placement.h"
 
 #include "FT2dft.h"
 
@@ -25,7 +27,7 @@ int main(int argc, char *argv[]) {
     int         monochrome = 0;     // monochrome rendering of the font
 
     sSelection selects[MAX_SELECTS];
-    int num_selects = 0;
+    unsigned num_selects = 0;
 
     sList ranges, glyphs;
     RESET(&ranges, sList);
@@ -194,5 +196,7 @@ printf("efficiency = %.1f%%\n", 100.0*(float)bmpsurface/(float)(w*h));
 
     if(verbose)
         malloc_stats();
+
+    return 0;
 }
 
